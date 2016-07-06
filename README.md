@@ -1,4 +1,4 @@
-# pi_spy
+# py_sPi
 Surveillance system using a RaspberryPi and V2 Camera in python
 
 ##TO-DO:
