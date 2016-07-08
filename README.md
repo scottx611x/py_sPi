@@ -1,4 +1,5 @@
-# py_sPi
+<h2><img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/cb/Raspberry_Pi_Logo.svg/810px-Raspberry_Pi_Logo.svg.png" height="25px" width="20px" />py_sPi</h2>
+
 Surveillance system using a RaspberryPi and V2 Camera in python
 
 ##TO-DO:
