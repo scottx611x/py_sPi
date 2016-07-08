@@ -2,7 +2,8 @@
 Surveillance system using a RaspberryPi and V2 Camera in python
 
 ##TO-DO:
-
+[picamera docs](https://picamera.readthedocs.io/en/release-1.12/)
+  
 - [x] [Recognize camera & take a ](https://thepihut.com/blogs/raspberry-pi-tutorials/16021420-how-to-install-use-the-raspberry-pi-camera)[**test pic**](https://www.raspberrypi.org/documentation/usage/camera/raspicam/raspistill.md)
 - [ ] Figure out which resolutions work the best for this use case (can MMS be of a certain size or below??? Do high-res stills require too much `gpu_mem` to be allocated???)
 - [ ] Check for current free disk space, and delete old pics if necessary
