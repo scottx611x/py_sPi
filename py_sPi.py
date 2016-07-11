@@ -16,12 +16,13 @@ prior_image = None
 
 class py_sPi(object):
     """
-        Class that allows one to take stills, videos, and 
-        instantiate a stream that will detect motion using 
+        Class that allows one to instantiate a stream that will detect motion using
         a raspberry pi and V2 Cam.
 
-        Relies on some webserver running in the same dir and some port-forwarding
-        so that twilio can make GET's for the images on whatever pi this runs on
+        NOTE: This relies on some webserver running in the same dir and some port-forwarding
+        so that twilio can make GET's for the images on whatever pi this runs on.
+
+        Python's SimpleHTTPServer works great for this.
     """
     camera = PiCamera()
 
