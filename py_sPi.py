@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Scott Ouellette | scottx611x@gmail.com
 
 import io
 import os
