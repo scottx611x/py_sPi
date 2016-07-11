@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 # Scott Ouellette | scottx611x@gmail.com
 
-import io
-import os
+
+import cv2
+import sys
 import time
-import random
 from werkzeug.urls import url_fix
 from datetime import datetime
-from fractions import Fraction
+from picamera.array import PiRGBArray
 from picamera import PiCamera
-from PIL import Image
-import twilio.twiml
 from twilio.rest import TwilioRestClient
 
 prior_image = None
