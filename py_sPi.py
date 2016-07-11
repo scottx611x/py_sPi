@@ -33,32 +33,24 @@ class py_sPi(object):
     token = "XXXXXXXXXXXX"
     client = TwilioRestClient(account, token)
 
-    def __init__(self, day_or_night, resolution):
+    def __init__(self, framerate, resolution):
 
-        self.camera_type = day_or_night
-        self.picture_paths = []
-        self.video_paths = []
-
-        print(
-            "\nInitializing {} camera...".format(self.camera_type))
-
+        print("\nCamera initializing")
+        self.camera.framerate = framerate
         self.camera.resolution = resolution
 
-        # Wait for the automatic gain control to settle
-        time.sleep(3)
+        self.rawCapture = PiRGBArray(self.camera, size=resolution)
 
-        """ 
-        for low-light stills during the day
-            # Set a framerate of 1/6fps, then set shutter
-            # speed to 6s and ISO to 800
-            self.camera.framerate = Fraction(1, 6)
-            self.camera.shutter_speed = 6000000
-            self.camera.exposure_mode = 'off'
-            self.camera.iso = 800
-            # Give the camera a good long time to measure AWB
-            # (you may wish to use fixed AWB instead)
-            time.sleep(10)
-        """
+        # Wait for the automatic gain control to settle
+        time.sleep(5)
+
+        self.avg = None
+        self.min_save_seconds = 5
+        self.lastSaved = datetime.now()
+        self.motionCounter = 0
+        self.min_motion_frames = 45
+        self.min_area = 5000
+
         print("\nCamera initialized")
 
     def detect_motion(self):
