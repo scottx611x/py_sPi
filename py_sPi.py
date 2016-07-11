@@ -11,8 +11,6 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 from twilio.rest import TwilioRestClient
 
-prior_image = None
-
 
 class py_sPi(object):
     """
@@ -36,6 +34,8 @@ class py_sPi(object):
     def __init__(self, framerate, resolution):
 
         print("\nCamera initializing")
+
+        # assign framerate and resolution
         self.camera.framerate = framerate
         self.camera.resolution = resolution
 
@@ -54,35 +54,92 @@ class py_sPi(object):
         print("\nCamera initialized")
 
     def detect_motion(self):
-        global prior_image
-        stream = io.BytesIO()
-        self.camera.capture(stream, format='jpeg', use_video_port=True)
-        stream.seek(0)
-        if prior_image is None:
-            prior_image = Image.open(stream)
-        else:
-            current_image = Image.open(stream)
-            if current_image != prior_image:
-                print("\nMotion detected")
+        # Capture continuous video frames
+        for f in self.camera.capture_continuous(self.rawCapture, format="bgr",
+                                                use_video_port=True):
+            # grab raw numpy array
+            frame = f.array
+            timestamp = datetime.now()
+            text = "NO_MOTION"
 
-                current_image_path = self.make_picture_path(datetime.now())
-                current_image.save(current_image_path)
-                print(
-                    "\nWrote {} to disk.".format(current_image_path))
-                prior_image = current_image
+            # convert frame to grayscale, and blur it
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-                self.send_mms(current_image_path)
-                print("\nSleeping 30 secs")
-                time.sleep(30)
+            # if the "average" frame is None, initialize it
+            if self.avg is None:
+                self.avg = gray.copy().astype("float")
+                self.rawCapture.truncate(0)
+                continue
 
-    def take_picture(self, pictures_to_take):
-        while pictures_to_take:
-            time.sleep(3)
-            self.camera.capture(self.make_picture_path(datetime.now()))
-            self.picture_paths += [pic_path]
-            pictures_to_take -= 1
-            print("\nWrote {} to disk.".format(pic_path))
-            self.send_mms(pic_path)
+            # accumulate the weighted average between the current frame and
+            # previous frames, then compute the difference between the current
+            # frame and running average
+            cv2.accumulateWeighted(gray, self.avg, 0.5)
+            frame_delta = cv2.absdiff(gray, cv2.convertScaleAbs(self.avg))
+
+            # threshold the delta image, dilate the thresholded image to fill
+            # in holes, then find contours on thresholded image
+            thresh = cv2.threshold(frame_delta, 5, 255,
+                                   cv2.THRESH_BINARY)[1]
+            thresh = cv2.dilate(thresh, None, iterations=2)
+            (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+                                         cv2.CHAIN_APPROX_SIMPLE)
+
+            # loop over the contours
+            for c in cnts:
+                # if the contour is too small, ignore it
+                if cv2.contourArea(c) < self.min_area:
+                    continue
+
+                # compute the bounding box for the contour, draw it on the
+                # frame, and update the text
+                (x, y, w, h) = cv2.boundingRect(c)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                text = "MOTION DETECTED"
+
+            # draw the text and timestamp on the frame
+
+            cv2.putText(frame, "Motion Status: {}".format(text), (10, 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            cv2.putText(frame, str(datetime.now()), (10, frame.shape[0] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.35, (0, 0, 255), 1)
+
+            # check to see if motion has been detected
+            if text == "MOTION DETECTED":
+
+                # check to see if enough time has passed between uploads
+                if (timestamp - self.lastSaved).seconds >=  \
+                        self.min_save_seconds:
+                    # increment the motion counter
+                    self.motionCounter += 1
+
+                    # check to see if the number of frames with consistent
+                    # motion is high enough
+                    if self.motionCounter >= self.min_motion_frames:
+                        # write the image to disk
+                        pic_path = self.make_picture_path(datetime.now())
+                        cv2.imwrite(pic_path, frame)
+
+                        # send MMS and record some video
+                        print("\nMotion detected!!! Sending MMS, and recording a 10 "
+                              "sec clip")
+                        self.send_mms(pic_path)
+                        self.take_video(10)
+
+                        # update the last uploaded timestamp and reset the
+                        # motion counter
+                        self.lastSaved = timestamp
+                        self.motionCounter = 0
+                        time.sleep(self.min_save_seconds)
+
+            # otherwise, the room is not MOTION
+            else:
+                self.motionCounter = 0
+
+            # clear the stream in preparation for the next frame
+            self.rawCapture.truncate(0)
 
     def take_video(self, duration):
         vid_path = '{}.h264'.format(datetime.now())
@@ -92,7 +149,7 @@ class py_sPi(object):
         print("\nWrote {} to disk.".format(vid_path))
 
     def send_mms(self, picture_path):
-        print("\nSending mms")
+        print("\nSending MMS message")
         message = self.client.messages.create(
             to="XXXXXXXXXXXX",
             from_="XXXXXXXXXXXX",
@@ -104,10 +161,9 @@ class py_sPi(object):
         )
 
     def make_picture_path(self, timestamp):
-        return'{}.jpg'.format(timestamp)
-
-cam = py_sPi("daytime", (3280, 2464))
+        return '{}.jpg'.format(timestamp)
 
 
-while True:
-    cam.detect_motion()
+cam = py_sPi(30, (1920, 1080))
+
+cam.detect_motion()
