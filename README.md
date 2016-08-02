@@ -8,9 +8,9 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] [Recognize camera & take a ](https://thepihut.com/blogs/raspberry-pi-tutorials/16021420-how-to-install-use-the-raspberry-pi-camera)[**test pic**](https://www.raspberrypi.org/documentation/usage/camera/raspicam/raspistill.md)
 - [x] Figure out which resolutions work the best for this use case (can MMS be of a certain size or below??? Do high-res stills require too much `gpu_mem` to be allocated???)
 - [x] Different settings for `iso`, `exposure`, `shutter_speed` and others to take better pics in low light (Shouldn't be necessary when both cams are running)
-- [ ] Provide options to `py_Spi.__init__` for the Normal cam and the NoIR Cam
-- [ ] Utilize: ` with picamera.PiCamera() as camera:`
-- [ ] Check for current free disk space, and delete old pics if necessary
+- [x] Provide options to `py_Spi.__init__` for the Normal cam and the NoIR Cam
+- [x] Utilize: ` with picamera.PiCamera() as camera:`
+- [x] Check for current free disk space, and delete old pics if necessary
 - [x] Get motion detection working
 - [x] Create way to find % difference between stills when motion is detected (don't want too easy of a trigger)
 - [x] [Leverage Twilio to send MMS](https://www.twilio.com/docs/libraries/python)
