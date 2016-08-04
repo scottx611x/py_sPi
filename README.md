@@ -17,6 +17,7 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] Run some lightweight webserver allowing for twilio to make GET's on the images we want
   - Make the proper GET's (can probably send multiple pics in one message See [`media_url`](https://www.twilio.com/docs/quickstart/python/sms/sending-via-rest))
 - [ ] Send link to video in message as well!
+- [ ] Utilize a config file
 - [ ] Figure out sunrise/sunset and alternate between booting Pi w/ IR cam and Pi w/ daytime cam
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
