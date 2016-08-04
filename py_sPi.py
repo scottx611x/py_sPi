@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
+# Scott Ouellette | scottx611x@gmail.com
 
 import cv2
 import sys
 import time
-import imutils
 from werkzeug.urls import url_fix
 from datetime import datetime
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from twilio.rest import TwilioRestClient
+
 
 prior_image = None
 
@@ -20,13 +21,15 @@ except IOError as e:
 
 
 class py_sPi(object):
+
     """
-        Class that allows one to take stills, videos, and
-        instantiate a stream that will detect motion using
+        Class that allows one to instantiate a stream that will detect motion using
         a raspberry pi and V2 Cam.
 
-        Relies on some webserver running in the same dir and some port-forwarding
-        so that twilio can make GET's for the images on whatever pi this runs on
+        NOTE: This relies on some webserver running in the same dir and some port-forwarding
+        so that twilio can make GET's for the images on whatever pi this runs on.
+
+        Python's SimpleHTTPServer works great for this.
     """
     camera = PiCamera()
 
@@ -38,6 +41,7 @@ class py_sPi(object):
     client = TwilioRestClient(account, token)
 
     def __init__(self, framerate, resolution):
+
         message = self.client.messages.create(
             to="+12075136000",
             from_="+15106626969",
@@ -45,6 +49,7 @@ class py_sPi(object):
         )
         sys.stdout.write("\nCamera initializing")
         sys.stdout.flush()
+
         self.camera.framerate = framerate
         self.camera.resolution = resolution
 
@@ -74,6 +79,7 @@ class py_sPi(object):
                                                 use_video_port=True):
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and MOTION/NO_MOTION text
+
             frame = f.array
             timestamp = datetime.now()
             text = "NO_MOTION"
@@ -83,7 +89,7 @@ class py_sPi(object):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-            # if the average frame is None, initialize it
+            # if the "average" frame is None, initialize it
             if self.avg is None:
                 self.avg = gray.copy().astype("float")
                 self.rawCapture.truncate(0)
@@ -143,7 +149,7 @@ class py_sPi(object):
                         sys.stdout.write(
                             "\nMotion detected!!! Recording a 10 second clip")
                         sys.stdout.flush()
-                        vid_path = self.take_video(5)
+                        vid_path = self.take_video(10)
 
                         self.send_mms(pic_path, vid_path)
 
@@ -155,8 +161,10 @@ class py_sPi(object):
 
             # otherwise, the room is not MOTION
             else:
+
                 sys.stdout.write("\nNo motion detected")
                 sys.stdout.flush()
+
                 self.motionCounter = 0
 
             # clear the stream in preparation for the next frame
@@ -173,9 +181,11 @@ class py_sPi(object):
         sys.stdout.flush()
        return vid_path
 
+
     def send_mms(self, picture_path, video_path):
         sys.stdout.write("\nSending MMS message")
         sys.stdout.flush()
+
         message = self.client.messages.create(
             to="+12075136000",
             from_="+15106626969",
@@ -193,6 +203,7 @@ class py_sPi(object):
                 self.webserver_ip,
                 self.webserver_port,
                 url_fix(path))
+
 
 cam = py_sPi(30, (1920, 1080))
 
