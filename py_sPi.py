@@ -191,7 +191,7 @@ class py_sPi(object):
             from_="+15106626969",
             body="Motion detected! Video link: {}".format(
                 self.make_twilio_url(video_path)),
-            media_url=["http://{}:{}/{}".format(
+            media_url=["{}".format(
                 self.make_twilio_url(picture_path))]
         )
 
