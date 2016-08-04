@@ -14,9 +14,9 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] Get motion detection working
 - [x] Create way to find % difference between stills when motion is detected (don't want too easy of a trigger)
 - [x] [Leverage Twilio to send MMS](https://www.twilio.com/docs/libraries/python)
-- [ ] [Run some lightweight webserver to accept incoming texts as well as allowing for twilio to make GET's on the images we want](https://github.com/scottx611x/Website/blob/master/scripts/python/sms_automation.py#L31)
-  - Example: `"Motion was detected (5) times today. Would you like to see the pictures [Y/N]?"`
-  - If yes, make the proper GET's (can probably send multiple pics in one message See [`media_url`](https://www.twilio.com/docs/quickstart/python/sms/sending-via-rest))
+- [x] Run some lightweight webserver allowing for twilio to make GET's on the images we want
+  - Make the proper GET's (can probably send multiple pics in one message See [`media_url`](https://www.twilio.com/docs/quickstart/python/sms/sending-via-rest))
+- [ ] Send link to video in message as well!
 - [ ] Figure out sunrise/sunset and alternate between booting Pi w/ IR cam and Pi w/ daytime cam
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
