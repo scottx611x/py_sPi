@@ -179,8 +179,7 @@ class py_sPi(object):
         self.camera.stop_recording()
         sys.stdout.write("\nWrote {} to disk.".format(vid_path))
         sys.stdout.flush()
-       return vid_path
-
+        return vid_path
 
     def send_mms(self, picture_path, video_path):
         sys.stdout.write("\nSending MMS message")
@@ -200,9 +199,9 @@ class py_sPi(object):
 
     def make_twilio_url(self, path):
         return "http://{}:{}/{}".format(
-                self.webserver_ip,
-                self.webserver_port,
-                url_fix(path))
+            self.webserver_ip,
+            self.webserver_port,
+            url_fix(path))
 
 
 cam = py_sPi(30, (1920, 1080))
