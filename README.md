@@ -16,9 +16,9 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] [Leverage Twilio to send MMS](https://www.twilio.com/docs/libraries/python)
 - [x] Run some lightweight webserver allowing for twilio to make GET's on the images we want
   - Make the proper GET's (can probably send multiple pics in one message See [`media_url`](https://www.twilio.com/docs/quickstart/python/sms/sending-via-rest))
-- [ ] Send link to video in message as well!
-- [ ] Utilize a config file
-- [ ] Figure out sunrise/sunset and alternate between booting Pi w/ IR cam and Pi w/ daytime cam
+- [x] Send link to video in message as well!
+- [x] Utilize a config file
+- [x] Figure out sunrise/sunset and alternate between booting Pi w/ IR cam and Pi w/ daytime cam (Shouldn't be necessary, Cameras wont detect motion if too dark or too light)
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
 - [ ] [Containerize... Conda? Docker?](https://github.com/umiddelb/armhf/wiki/Get-Docker-up-and-running-on-the-RaspberryPi-(ARMv6)-in-four-steps-(Wheezy))
