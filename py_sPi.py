@@ -66,7 +66,7 @@ class py_sPi(object):
         self.min_save_seconds = 5
         self.lastSaved = datetime.now()
         self.motionCounter = 0
-        self.min_motion_frames = 45
+        self.min_motion_frames = 30
         self.min_area = 5000
 
         sys.stdout.write("\nCamera initialized")
@@ -162,10 +162,6 @@ class py_sPi(object):
 
             # otherwise, the room is not MOTION
             else:
-
-                sys.stdout.write("\nNo motion detected")
-                sys.stdout.flush()
-
                 self.motionCounter = 0
 
             # clear the stream in preparation for the next frame
@@ -174,7 +170,7 @@ class py_sPi(object):
     def take_video(self, duration):
         sys.stdout.write("\nTaking Video")
         sys.stdout.flush()
-        vid_path = '{}.h264'.format(datetime.now())
+        vid_path = '{}.mp4'.format(datetime.now())
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
