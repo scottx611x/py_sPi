@@ -10,7 +10,7 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] Different settings for `iso`, `exposure`, `shutter_speed` and others to take better pics in low light (Shouldn't be necessary when both cams are running)
 - [x] Provide options to `py_Spi.__init__` for the Normal cam and the NoIR Cam
 - [x] Utilize: ` with picamera.PiCamera() as camera:`
-- [x] Check for current free disk space, and delete old pics if necessary
+- [ ] Check for current free disk space, and delete old pics if necessary
 - [x] Get motion detection working
 - [x] Create way to find % difference between stills when motion is detected (don't want too easy of a trigger)
 - [x] [Leverage Twilio to send MMS](https://www.twilio.com/docs/libraries/python)
@@ -19,6 +19,12 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [x] Send link to video in message as well!
 - [x] Utilize a config file
 - [x] Figure out sunrise/sunset and alternate between booting Pi w/ IR cam and Pi w/ daytime cam (Shouldn't be necessary, Cameras wont detect motion if too dark or too light)
+- [ ] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download instead of stream
+- [ ] run day/night cam based on light levels
+- [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
+- [ ] add a `requirement.txt` file
+- [ ] Figure out how to not detect moving shadows/branches as motion (maybe have some type of way to learn the enviornment???)-
+- [ ] leverage pi thats not in use to do the `.h264` to `.mp4` conversion
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
 - [ ] [Containerize... Conda? Docker?](https://github.com/umiddelb/armhf/wiki/Get-Docker-up-and-running-on-the-RaspberryPi-(ARMv6)-in-four-steps-(Wheezy))
