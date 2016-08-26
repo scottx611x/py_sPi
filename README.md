@@ -4,13 +4,10 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 
 ##TO-DO:
 [picamera docs](https://picamera.readthedocs.io/en/release-1.12/)
-
-[combat shadows/lightchanges from being detected as motion 1](http://www.pyimagesearch.com/2015/05/25/basic-motion-detection-and-tracking-with-python-and-opencv/)
-
-[combat shadows/lightchanges from being detected as motion 2](http://shallowsky.com/software/motioncam.html)
+- [ ] Play with delta_threshold value & min_motion_frames to stop detecting false positives from shadows and trees
 - [ ] Check for current free disk space, and delete old pics if necessary (or just delete anything over a week old)
 - [ ] Utilize: ` with picamera.PiCamera() as camera:`
-- [ ] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download instead of stream
+- [ ] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download of video links instead of streaming in browser
 - [ ] run day/night cam based on light levels
 - [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
 - [x] add a `requirement.txt` file
