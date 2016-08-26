@@ -12,8 +12,6 @@ from picamera import PiCamera
 from twilio.rest import TwilioRestClient
 
 
-prior_image = None
-
 try:
     with open("config.json", 'r') as f:
         settings = json.load(f)
@@ -30,9 +28,10 @@ class py_sPi(object):
         NOTE: This relies on some webserver running in the same dir and some port-forwarding
         so that twilio can make GET's for the images on whatever pi this runs on.
 
-        Python's SimpleHTTPServer works great for this.
+        Flask works great for this.
     """
-    camera = PiCamera()
+    
+	camera = PiCamera()
 
     webserver_ip = settings["WEBSERVER_REMOTE_IP"]
     webserver_port = settings["WEBSERVER_PORT"]
@@ -53,7 +52,6 @@ class py_sPi(object):
 
         self.camera.framerate = framerate
         self.camera.resolution = resolution
-
         sys.stdout.write("\nStarting raw capture")
         sys.stdout.flush()
 
@@ -66,7 +64,8 @@ class py_sPi(object):
         self.min_save_seconds = 5
         self.lastSaved = datetime.now()
         self.motionCounter = 0
-        self.min_motion_frames = 30
+        self.min_motion_frames = 3
+		self.delta_threshold = 10
         self.min_area = 5000
 
         sys.stdout.write("\nCamera initialized")
@@ -104,7 +103,7 @@ class py_sPi(object):
 
             # threshold the delta image, dilate the thresholded image to fill
             # in holes, then find contours on thresholded image
-            thresh = cv2.threshold(frame_delta, 5, 255,
+            thresh = cv2.threshold(frame_delta, self.delta_threshold, 255,
                                    cv2.THRESH_BINARY)[1]
             thresh = cv2.dilate(thresh, None, iterations=2)
             (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,

@@ -13,7 +13,7 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [ ] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download instead of stream
 - [ ] run day/night cam based on light levels
 - [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
-- [ ] add a `requirement.txt` file
+- [x] add a `requirement.txt` file
 - [ ] Figure out how to not detect moving shadows/branches as motion (maybe have some type of way to learn the enviornment???)-
 - [ ] leverage pi thats not in use to do the `.h264` to `.mp4` conversion
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
