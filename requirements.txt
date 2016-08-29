@@ -1,0 +1,4 @@
+picamera==1.12
+twilio==5.4.0
+werkzeug==0.11.10
+Flask==0.11
