@@ -34,7 +34,7 @@ class py_sPi(object):
         Flask works great for this.
     """
 
-        camera = PiCamera()
+    camera = PiCamera()
 
     webserver_ip = settings["WEBSERVER_REMOTE_IP"]
     webserver_port = settings["WEBSERVER_PORT"]
@@ -64,14 +64,13 @@ class py_sPi(object):
         time.sleep(5)
 
         self.avg = None
-        self.video_duration = 10
+        self.video_duration = 5
         self.lastSaved = datetime.now()
         self.motionCounter = 0
 
-        self.min_motion_frames = 3
+        self.min_motion_frames = 1 
         self.delta_threshold = 10
-        self.min_area = 7500
-
+        self.min_area = 10000 
         sys.stdout.write("\nCamera initialized")
         sys.stdout.flush()
 
@@ -145,7 +144,7 @@ class py_sPi(object):
                     # motion is high enough
                     if self.motionCounter >= self.min_motion_frames:
                         # write the image to disk
-                        pic_path = self.make_picture_path(datetime.now())
+                        pic_path = self.make_picture_path()
 
                         cv2.imwrite(pic_path, frame)
 
@@ -172,17 +171,16 @@ class py_sPi(object):
     def take_video(self, duration):
         sys.stdout.write("\nTaking Video")
         sys.stdout.flush()
-        vid_path = 'vids/{}.h264'.format(uuid.uuid4())
+        vid_path = 'vids/{}.h264'.format(uuid.uuid4()).replace("-", "")
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
         sys.stdout.write("\nWrote {} to disk.".format(vid_path))
         sys.stdout.flush()
-        new_vid_path = vid_path.replace(".h264", ".mp4")
-        return new_vid_path
+        new_vid_path = vid_path.replace("h264", "mp4")
         try:
             os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
-            os.remove(vid_path)
+            return new_vid_path
         except Exception as e:
             return None
 
@@ -208,11 +206,13 @@ class py_sPi(object):
                     self.make_twilio_url(picture_path))]
             )
 
-    def make_picture_path(self, timestamp):
-        return 'pics/{}.jpg'.format(timestamp).replace(" ", "_")
+    def make_picture_path(self):
+        return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
     def make_twilio_url(self, path):
-        return "http://{}:{}/{}".format(
+        path = path.replace("pics/", "")
+        path = path.replace("vids/", "")
+	return "http://{}:{}/{}".format(
             self.webserver_ip,
             self.webserver_port,
             url_fix(path))
