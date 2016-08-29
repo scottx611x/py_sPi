@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 # Scott Ouellette | scottx611x@gmail.com
 
+import os
 import cv2
 import sys
 import time
 import json
+import uuid
+import zipfile
 from werkzeug.urls import url_fix
 from datetime import datetime
 from picamera.array import PiRGBArray
@@ -63,11 +66,12 @@ class py_sPi(object):
         time.sleep(5)
 
         self.avg = None
-        self.min_save_seconds = 5
+        self.video_duration = 10
         self.lastSaved = datetime.now()
         self.motionCounter = 0
-        self.min_motion_frames = 30
-        self.min_area = 5000
+        self.min_motion_frames = 5
+        self.delta_threshold = 10
+        self.min_area = 7500
 
         sys.stdout.write("\nCamera initialized")
         sys.stdout.flush()
@@ -80,7 +84,6 @@ class py_sPi(object):
                                                 use_video_port=True):
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and MOTION/NO_MOTION text
-
             frame = f.array
             timestamp = datetime.now()
             text = "NO_MOTION"
@@ -104,7 +107,7 @@ class py_sPi(object):
 
             # threshold the delta image, dilate the thresholded image to fill
             # in holes, then find contours on thresholded image
-            thresh = cv2.threshold(frame_delta, 5, 255,
+            thresh = cv2.threshold(frame_delta, self.delta_threshold, 255,
                                    cv2.THRESH_BINARY)[1]
             thresh = cv2.dilate(thresh, None, iterations=2)
             (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -135,7 +138,7 @@ class py_sPi(object):
 
                 # check to see if enough time has passed between uploads
                 if (timestamp - self.lastSaved).seconds >=  \
-                        self.min_save_seconds:
+                        self.video_duration:
                     # increment the motion counter
                     self.motionCounter += 1
 
@@ -144,13 +147,14 @@ class py_sPi(object):
                     if self.motionCounter >= self.min_motion_frames:
                         # write the image to disk
                         pic_path = self.make_picture_path(datetime.now())
+
                         cv2.imwrite(pic_path, frame)
 
                         # send_mms
                         sys.stdout.write(
-                            "\nMotion detected!!! Recording a 10 second clip")
+                            "\nMotion detected!!! Recording a {} second clip".format(self.video_duration))
                         sys.stdout.flush()
-                        vid_path = self.take_video(10)
+                        vid_path = self.take_video(self.video_duration)
 
                         self.send_mms(pic_path, vid_path)
 
@@ -158,7 +162,6 @@ class py_sPi(object):
                         # motion counter
                         self.lastSaved = timestamp
                         self.motionCounter = 0
-                        time.sleep(self.min_save_seconds)
 
             # otherwise, the room is not MOTION
             else:
@@ -170,29 +173,44 @@ class py_sPi(object):
     def take_video(self, duration):
         sys.stdout.write("\nTaking Video")
         sys.stdout.flush()
-        vid_path = '{}.mp4'.format(datetime.now())
+        vid_path = 'vids/{}.h264'.format(uuid.uuid4())
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
         sys.stdout.write("\nWrote {} to disk.".format(vid_path))
         sys.stdout.flush()
-        return vid_path
+        new_vid_path = vid_path.replace(".h264", ".mp4")
+        return new_vid_path
+        try:
+            os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
+            os.remove(vid_path)
+        except Exception as e:
+            return None
 
     def send_mms(self, picture_path, video_path):
         sys.stdout.write("\nSending MMS message")
         sys.stdout.flush()
+        body = ""
+        # numbers = ["+12075136000", "+12077547135"]
+        numbers = ["+12075136000"]
 
-        message = self.client.messages.create(
-            to="+12075136000",
-            from_="+15106626969",
-            body="Motion detected! Video link: {}".format(
-                self.make_twilio_url(video_path)),
-            media_url=["{}".format(
-                self.make_twilio_url(picture_path))]
-        )
+        if video_path:
+            body = "Motion detected! Video link: {}".format(
+                self.make_twilio_url(video_path))
+        else:
+            body = "Motion detected!"
+
+        for number in numbers:
+            message = self.client.messages.create(
+                to=number,
+                from_="+15106626969",
+                body=body,
+                media_url=["{}".format(
+                    self.make_twilio_url(picture_path))]
+            )
 
     def make_picture_path(self, timestamp):
-        return '{}.jpg'.format(timestamp)
+        return 'pics/{}.jpg'.format(timestamp).replace(" ", "_")
 
     def make_twilio_url(self, path):
         return "http://{}:{}/{}".format(
