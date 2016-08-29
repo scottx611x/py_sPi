@@ -2,14 +2,21 @@
 # Scott Ouellette | scottx611x@gmail.com
 # --------------------------------------
 # Flask server that will allow for the easy downloading of videos without
-# them streaming their content in a mobile browser via use of the
-# "Content-Disposition" header.
+# them streaming their content in a mobile browser
 
+import sys
+import os
+import time
 import json
-from flask import Flask
+from flask import Flask, send_from_directory 
+from flask_api import status
+from flask.ext.compress import Compress
 
 # Initialize the Flask application
 app = Flask(__name__)
+app.config['COMPRESS_MIMETYPES'] = ['image/jpeg','video/mp4']
+time.sleep(3)
+Compress(app)
 
 try:
     with open("config.json", 'r') as f:
@@ -23,16 +30,19 @@ webserver_port = settings["WEBSERVER_PORT"]
 
 
 # This route will prompt a file download always
-@app.route('/', methods=['GET'):
-def get():
-    # Set the right header for the response
-    # to be downloaded, instead of just sent to the browser
-    response.headers["Content-Disposition"] = "attachment;"
-    return response
-
+@app.route('/<filename>', methods=['GET'])
+def send_file(filename):
+    try:
+	if '.mp4' in filename:
+            return send_from_directory("vids", filename, as_attachment=True)
+	if '.jpg' in filename:
+            return send_from_directory("pics", filename, as_attachment=True)
+    except Exception as e:
+        content = {'please move along': 'nothing to see here'}
+        return content, status.HTTP_500_INTERNAL_SERVER_ERROR
 if __name__ == '__main__':
     app.run(
-        host=webserver_ip,
+        host='0.0.0.0',
         port=int(settings["WEBSERVER_PORT"]),
-        debug=True
+	threaded=True
     )
