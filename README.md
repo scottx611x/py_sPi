@@ -4,14 +4,14 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 
 ##TO-DO:
 [picamera docs](https://picamera.readthedocs.io/en/release-1.12/)
-- [ ] Play with delta_threshold value & min_motion_frames to stop detecting false positives from shadows and trees
+- [x] Play with delta_threshold value & min_motion_frames to stop detecting false positives from shadows and trees
 - [ ] Check for current free disk space, and delete old pics if necessary (or just delete anything over a week old)
 - [ ] Utilize: ` with picamera.PiCamera() as camera:`
-- [ ] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download of video links instead of streaming in browser
+- [x] run a Flask server instead of python's SimpleHTTPServer to allow the association of `Content-Disposition` header to force download of video links instead of streaming in browser
 - [ ] run day/night cam based on light levels
 - [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
 - [x] add a `requirement.txt` file
-- [ ] Figure out how to not detect moving shadows/branches as motion (maybe have some type of way to learn the enviornment???)-
+- [x] Figure out how to not detect moving shadows/branches as motion (maybe have some type of way to learn the enviornment???)-
 - [ ] leverage pi thats not in use to do the `.h264` to `.mp4` conversion
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
