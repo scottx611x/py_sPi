@@ -8,13 +8,13 @@ import sys
 import os
 import time
 import json
-from flask import Flask, send_from_directory 
+from flask import Flask, send_from_directory
 from flask_api import status
-from flask.ext.compress import Compress
+from flask_compress import Compress
 
 # Initialize the Flask application
 app = Flask(__name__)
-app.config['COMPRESS_MIMETYPES'] = ['image/jpeg','video/mp4']
+app.config['COMPRESS_MIMETYPES'] = ['image/jpeg', 'video/mp4']
 time.sleep(3)
 Compress(app)
 
@@ -33,9 +33,9 @@ webserver_port = settings["WEBSERVER_PORT"]
 @app.route('/<filename>', methods=['GET'])
 def send_file(filename):
     try:
-	if '.mp4' in filename:
+        if '.mp4' in filename:
             return send_from_directory("vids", filename, as_attachment=True)
-	if '.jpg' in filename:
+        if '.jpg' in filename:
             return send_from_directory("pics", filename, as_attachment=True)
     except Exception as e:
         content = {'please move along': 'nothing to see here'}
@@ -44,5 +44,5 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=int(settings["WEBSERVER_PORT"]),
-	threaded=True
+        threaded=True
     )
