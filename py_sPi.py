@@ -15,6 +15,7 @@ from picamera import PiCamera
 from twilio.rest import TwilioRestClient
 
 global RETRY_TWILIO_SEND
+RETRY_TWILIO_SEND = 0
 
 try:
     with open("config.json", 'r') as f:
@@ -190,6 +191,8 @@ class py_sPi(object):
             # clear the stream in preparation for the next frame
             self.raw_capture.truncate(0)
 
+            sys.stdout.flush()
+
     def take_video(self, duration):
         """
             Takes a raw .h264 video and converts to .mp4
@@ -255,8 +258,8 @@ class py_sPi(object):
 
                 time.sleep(60)
                 RETRY_TWILIO_SEND = 0
-            try:
-                for number in numbers:
+            for number in recipients:
+                try:
                     message = self.client.messages.create(
                         to=number,
                         from_="+15106626969",
@@ -264,10 +267,10 @@ class py_sPi(object):
                         media_url=["{}".format(
                             self.make_twilio_url(picture_path))]
                     )
-                    recipients[item] = "SUCCESS"
+                    recipients[number] = "SUCCESS"
 
-            except httplib2.ServerNotFoundError:
-                recipients[item] = "FAILURE"
+                except (httplib2.ServerNotFoundError, Exception) as e:
+                    recipients[number] = "FAILURE"
 
             return recipients
 
