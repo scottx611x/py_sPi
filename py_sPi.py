@@ -8,6 +8,7 @@ import time
 import json
 import uuid
 import zipfile
+import httplib2
 from werkzeug.urls import url_fix
 from datetime import datetime
 from picamera.array import PiRGBArray
@@ -258,6 +259,7 @@ class py_sPi(object):
 
                 time.sleep(60)
                 RETRY_TWILIO_SEND = 0
+
             for number in recipients:
                 try:
                     message = self.client.messages.create(
@@ -269,7 +271,7 @@ class py_sPi(object):
                     )
                     recipients[number] = "SUCCESS"
 
-                except (httplib2.ServerNotFoundError, Exception) as e:
+                except (httplib2.ServerNotFoundError, Exception):
                     recipients[number] = "FAILURE"
 
             return recipients
