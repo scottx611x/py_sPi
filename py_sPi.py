@@ -82,7 +82,7 @@ class py_sPi(object):
 
         # Minimum amount of consecutive frames to allow motion in before
         # sending a message
-        self.min_motion_frames = 5
+        self.min_motion_frames = 1
 
         # Percent difference between "motion frame" and the averaged background
         # model (if you're experiencing lots of false positives increase
@@ -92,7 +92,7 @@ class py_sPi(object):
         # Minimum area in frame that motion needs to happen within for a
         # message to be sent (total frame area is just your resolution
         # i.e. 1920 x 1080 = 2,073,600)
-        self.min_area = 10000
+        self.min_area = (resolution[0] * resolution[1]) * .05
 
         self.video_duration = 10
         self.last_saved = datetime.now()
