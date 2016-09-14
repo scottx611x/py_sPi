@@ -82,12 +82,12 @@ class py_sPi(object):
 
         # Minimum amount of consecutive frames to allow motion in before
         # sending a message
-        self.min_motion_frames = 1
+        self.min_motion_frames = 3
 
         # Percent difference between "motion frame" and the averaged background
         # model (if you're experiencing lots of false positives increase
         # this!!!)
-        self.delta_threshold = 15
+        self.delta_threshold = 19
 
         # Minimum area in frame that motion needs to happen within for a
         # message to be sent (total frame area is just your resolution
