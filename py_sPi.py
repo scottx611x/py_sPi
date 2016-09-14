@@ -10,7 +10,7 @@ import uuid
 import zipfile
 import httplib2
 from werkzeug.urls import url_fix
-from datetime import datetime
+from datetime import datetime, timedelta
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from twilio.rest import TwilioRestClient
@@ -117,16 +117,16 @@ class py_sPi(object):
             frame = f.array
             timestamp = datetime.now()
             text = "NO_MOTION"
-
-            if self.last_checked_time < timestamp - timedelta(minutes=45):
+	    
+	    if self.last_checked_time < timestamp - timedelta(minutes=45):
                 self.last_checked_time = timestamp
 		day_or_night_pi = day_or_night_check()
 		
 		# Check if its the right time of day to run our type of Pi
 		# We'll sleep for an hour and check again
 		if day_or_night_pi != self.pi_type:
-			sys.stdout.write("Not the right time to run our {}".format(self.pi_type))
-			sys.stdout.write("day_or_night_check returned: {}".format(day_or_night_pi))
+			sys.stdout.write("\nNot the right time to run our {}".format(self.pi_type))
+			sys.stdout.write("\nday_or_night_check returned: {}".format(day_or_night_pi))
 			sys.stdout.flush()
 			time.sleep(3600)
 		else:
