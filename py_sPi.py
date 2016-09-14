@@ -57,7 +57,7 @@ class py_sPi(object):
             message = self.client.messages.create(
                 to="+12075136000",
                 from_="+15106626969",
-                body="py_sPi is starting on {} @ {}".format(, self.pi_type, self.start_time),
+                body="py_sPi is starting on {} @ {}".format(self.pi_type, self.start_time),
             )
         except httplib2.ServerNotFoundError:
             # Twilio should provide a better error here, but I guess I can deal
