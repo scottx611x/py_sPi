@@ -2,6 +2,8 @@
 
 # sudo dpkg-reconfigure dash -> select NO!
 
+sudo make_cron.sh
+
 sudo killall python
 sudo rm -rf nohup.out
 mkdir -p vids
