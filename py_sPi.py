@@ -14,6 +14,7 @@ from datetime import datetime
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from twilio.rest import TwilioRestClient
+from day_or_night import day_or_night_check
 
 global RETRY_TWILIO_SEND
 RETRY_TWILIO_SEND = 0
@@ -47,19 +48,22 @@ class py_sPi(object):
 
     client = TwilioRestClient(account, token)
 
-    def __init__(self, framerate, resolution):
+    def __init__(self, framerate, resolution, pi_type):
+	self.start_time = datetime.now()
 
         try:
             message = self.client.messages.create(
                 to="+12075136000",
                 from_="+15106626969",
-                body="py_sPi is starting @ {}".format(datetime.now()),
+                body="py_sPi is starting @ {}".format(self.start_time),
             )
         except httplib2.ServerNotFoundError:
             # Twilio should provide a better error here, but I guess I can deal
             # without a startup text if things break :)
             sys.stdout.write(
                 "\nCan't reach twilio :(")
+
+	self.pi_type = pi_type
 
         sys.stdout.write("\nCamera initializing")
 
@@ -102,6 +106,8 @@ class py_sPi(object):
 
     def detect_motion(self):
         sys.stdout.write("\nDetecting Motion")
+	
+	self.last_checked_time = self.start_time
 
         # capture consecutive frames from the camera
         for f in self.camera.capture_continuous(self.raw_capture, format="bgr",
@@ -112,7 +118,23 @@ class py_sPi(object):
             timestamp = datetime.now()
             text = "NO_MOTION"
 
-            # convert frame to grayscale, and blur it
+            if self.last_checked_time < timestamp - timedelta(minutes=45):
+                self.last_checked_time = timestamp
+		day_or_night_pi = day_or_night_check()
+		
+		# Check if its the right time of day to run our type of Pi
+		# We'll sleep for an hour and check again
+		if day_or_night_pi != self.pi_type:
+			sys.stdout.write("Not the right time to run our {}".format(self.pi_type))
+			sys.stdout.write("day_or_night_check returned: {}".format(day_or_night_pi))
+			sys.stdout.flush()
+			time.sleep(3600)
+		else:
+			sys.stdout.write("It's the right time to run our {}".format(self.pi_type))
+                        sys.stdout.write("day_or_night_check returned: {}".format(day_or_night_pi))
+                        sys.stdout.flush()
+		
+	    # convert frame to grayscale, and blur it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
@@ -310,6 +332,8 @@ class py_sPi(object):
             url_fix(path))
 
 
-cam = py_sPi(30, (1920, 1080))
+PI_TYPE = "DAY_PI"
+# PI_TYPE = "NIGHT_PI"
 
+cam = py_sPi(30, (1920, 1080), PI_TYPE)
 cam.detect_motion()
