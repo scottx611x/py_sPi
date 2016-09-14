@@ -50,20 +50,20 @@ class py_sPi(object):
 
     def __init__(self, framerate, resolution, pi_type):
 	self.start_time = datetime.now()
+	
+	self.pi_type = pi_type
 
         try:
             message = self.client.messages.create(
                 to="+12075136000",
                 from_="+15106626969",
-                body="py_sPi is starting @ {}".format(self.start_time),
+                body="py_sPi is starting on {} @ {}".format(, self.pi_type, self.start_time),
             )
         except httplib2.ServerNotFoundError:
             # Twilio should provide a better error here, but I guess I can deal
             # without a startup text if things break :)
             sys.stdout.write(
                 "\nCan't reach twilio :(")
-
-	self.pi_type = pi_type
 
         sys.stdout.write("\nCamera initializing")
 
@@ -332,8 +332,6 @@ class py_sPi(object):
             url_fix(path))
 
 
-PI_TYPE = "DAY_PI"
-# PI_TYPE = "NIGHT_PI"
-
+PI_TYPE = settings["PI_TYPE"]
 cam = py_sPi(30, (1920, 1080), PI_TYPE)
 cam.detect_motion()
