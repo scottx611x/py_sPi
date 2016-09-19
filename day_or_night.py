@@ -31,7 +31,7 @@ def day_or_night_check():
 
 		now=datetime.now()
 
-		if now >= sunrise and now =< sunset:
+		if now >= sunrise and now <= sunset:
 			return "DAY_PI"
 		elif now < sunrise and now > sunset:
 			return "NIGHT_PI"
