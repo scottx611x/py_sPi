@@ -1,4 +1,5 @@
 import json
+import sys
 from urllib import urlopen
 from dateutil import tz
 from datetime import datetime, timedelta
@@ -17,10 +18,9 @@ def day_or_night_check():
 	response=json.loads(
 		urlopen(api_url).read()
 		)
-
+	sys.stdout.write("\n sunrise-sunset api response: {}".format(response['status']))
 
 	if response["status"] == "OK":
-
 		times=response["results"]
 
 		sunrise=times["sunrise"].split("+")[0]
@@ -31,7 +31,7 @@ def day_or_night_check():
 
 		now=datetime.now()
 
-		if now > sunrise and now < sunset:
+		if now >= sunrise and now =< sunset:
 			return "DAY_PI"
 		elif now < sunrise and now > sunset:
 			return "NIGHT_PI"

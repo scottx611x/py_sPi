@@ -118,7 +118,7 @@ class py_sPi(object):
             timestamp = datetime.now()
             text = "NO_MOTION"
 	    
-	    if self.last_checked_time < timestamp - timedelta(minutes=45):
+	    if self.last_checked_time <= timestamp - timedelta(minutes=45):
                 self.last_checked_time = timestamp
 		day_or_night_pi = day_or_night_check()
 		
@@ -130,8 +130,8 @@ class py_sPi(object):
 			sys.stdout.flush()
 			time.sleep(3600)
 		else:
-			sys.stdout.write("It's the right time to run our {}".format(self.pi_type))
-                        sys.stdout.write("day_or_night_check returned: {}".format(day_or_night_pi))
+			sys.stdout.write(\n"It's the right time to run our {}".format(self.pi_type))
+                        sys.stdout.write("\nday_or_night_check returned: {}".format(day_or_night_pi))
                         sys.stdout.flush()
 		
 	    # convert frame to grayscale, and blur it
