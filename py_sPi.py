@@ -130,7 +130,7 @@ class py_sPi(object):
 			sys.stdout.flush()
 			time.sleep(3600)
 		else:
-			sys.stdout.write(\n"It's the right time to run our {}".format(self.pi_type))
+			sys.stdout.write("\nIt's the right time to run our {}".format(self.pi_type))
                         sys.stdout.write("\nday_or_night_check returned: {}".format(day_or_night_pi))
                         sys.stdout.flush()
 		
