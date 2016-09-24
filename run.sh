@@ -1,8 +1,8 @@
 #!usr/bin/bash
 
 # sudo dpkg-reconfigure dash -> select NO!
-
-sudo sh make_cron.sh
+python -m utils.day_or_night
+sudo sh scripts/make_cron.sh
 
 sudo killall python
 sudo rm -rf nohup.out

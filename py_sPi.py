@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from twilio.rest import TwilioRestClient
-from day_or_night import day_or_night_check
+from utils.day_or_night import day_or_night_check
 
 global RETRY_TWILIO_SEND
 RETRY_TWILIO_SEND = 0
@@ -119,6 +119,8 @@ class py_sPi(object):
             text = "NO_MOTION"
 	    
 	    if self.last_checked_time <= timestamp - timedelta(minutes=45):
+                sys.stdout.write("Timestamp: {}".format(timestamp))
+                sys.stdout.flush()
                 self.last_checked_time = timestamp
 		day_or_night_pi = day_or_night_check()
 		
