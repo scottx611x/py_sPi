@@ -5,10 +5,7 @@
 
 sudo sh scripts/make_cron.sh
 
-python -m utils.day_or_night
-
-sudo kill $(ps aux | grep '[p]ython flask_server.py' | awk '{print $2}')
-sudo kill $(ps aux | grep '[p]ython py_sPi.py' | awk '{print $2}')
+sudo killall python
 
 # Remove old nohup log
 sudo rm -rf nohup.out
