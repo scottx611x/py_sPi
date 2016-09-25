@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # Scott Ouellette | scottx611x@gmail.com
 
+# --------------------------------------
+
 import os
 import cv2
 import sys
 import time
 import json
 import uuid
-import zipfile
 import httplib2
 from werkzeug.urls import url_fix
 from datetime import datetime, timedelta
@@ -24,18 +25,19 @@ try:
         settings = json.load(f)
 except IOError as e:
     error_msg = "Could not open '{}': {}".format("config.json", e)
+    sys.exit()
 
 
 class py_sPi(object):
-
     """
-        Class that allows one to instantiate a stream that will detect motion using
-        a raspberry pi and V2 Cam.
+        Class that allows one to instantiate a stream that will detect
+        motion using a raspberry pi and V2 Cam.
 
-        NOTE: This relies on some webserver running in the same dir and some port-forwarding
-        so that twilio can make GET's for the images on whatever pi this runs on.
+        NOTE: This relies on some webserver running in the same dir and some
+        port-forwarding so that twilio can make GET's for the images on
+        whatever pi this runs on.
 
-        Flask works great for this. 
+        Flask works great for this.
     """
 
     camera = PiCamera()
@@ -49,21 +51,21 @@ class py_sPi(object):
     client = TwilioRestClient(account, token)
 
     def __init__(self, framerate, resolution, pi_type):
-	self.start_time = datetime.now()
-	
-	self.pi_type = pi_type
+        self.start_time = datetime.now()
+
+        self.pi_type = pi_type
 
         try:
-            message = self.client.messages.create(
+            self.client.messages.create(
                 to="+12075136000",
                 from_="+15106626969",
-                body="py_sPi is starting on {} @ {}".format(self.pi_type, self.start_time),
+                body="py_sPi is starting on {} @ {}".format(self.pi_type,
+                                                            self.start_time),
             )
         except httplib2.ServerNotFoundError:
             # Twilio should provide a better error here, but I guess I can deal
             # without a startup text if things break :)
-            sys.stdout.write(
-                "\nCan't reach twilio :(")
+            sys.stdout.write("\nCan't reach twilio :(")
 
         sys.stdout.write("\nCamera initializing")
 
@@ -106,37 +108,45 @@ class py_sPi(object):
 
     def detect_motion(self):
         sys.stdout.write("\nDetecting Motion")
-	
-	self.last_checked_time = self.start_time
+
+        self.last_checked_time = self.start_time
 
         # capture consecutive frames from the camera
-        for f in self.camera.capture_continuous(self.raw_capture, format="bgr",
-                                                use_video_port=True):
+        for frames in self.camera.capture_continuous(
+                self.raw_capture, format="bgr", use_video_port=True):
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and MOTION/NO_MOTION text
-            frame = f.array
+            frame = frames.array
             timestamp = datetime.now()
             text = "NO_MOTION"
-	    
-	    if self.last_checked_time <= timestamp - timedelta(minutes=45):
+
+            if self.last_checked_time <= timestamp - timedelta(minutes=45):
                 sys.stdout.write("Timestamp: {}".format(timestamp))
                 sys.stdout.flush()
                 self.last_checked_time = timestamp
-		day_or_night_pi = day_or_night_check()
-		
-		# Check if its the right time of day to run our type of Pi
-		# We'll sleep for an hour and check again
-		if day_or_night_pi != self.pi_type:
-			sys.stdout.write("\nNot the right time to run our {}".format(self.pi_type))
-			sys.stdout.write("\nday_or_night_check returned: {}".format(day_or_night_pi))
-			sys.stdout.flush()
-			time.sleep(3600)
-		else:
-			sys.stdout.write("\nIt's the right time to run our {}".format(self.pi_type))
-                        sys.stdout.write("\nday_or_night_check returned: {}".format(day_or_night_pi))
-                        sys.stdout.flush()
-		
-	    # convert frame to grayscale, and blur it
+                day_or_night_pi = day_or_night_check()
+
+                # Check if its the right time of day to run our type of Pi
+                # We'll sleep for an hour and check again
+                if day_or_night_pi != self.pi_type:
+                    sys.stdout.write(
+                        "\nNot the right time to run our {}".format(
+                            self.pi_type))
+                    sys.stdout.write(
+                        "\nday_or_night_check returned: {}".format(
+                            day_or_night_pi))
+                    sys.stdout.flush()
+                    time.sleep(3600)
+                else:
+                    sys.stdout.write(
+                        "\nIt's the right time to run our {}".format(
+                            self.pi_type))
+                    sys.stdout.write(
+                        "\nday_or_night_check returned: {}".format(
+                            day_or_night_pi))
+                    sys.stdout.flush()
+
+            # convert frame to grayscale, and blur it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
@@ -184,7 +194,7 @@ class py_sPi(object):
             if text == "MOTION DETECTED":
 
                 # check to see if enough time has passed between message sends
-                if (timestamp - self.last_saved).seconds >=  \
+                if (timestamp - self.last_saved).seconds >= \
                         self.send_interval:
 
                     # increment the motion counter
@@ -193,14 +203,15 @@ class py_sPi(object):
                     # check to see if the number of frames with consistent
                     # motion is high enough
                     if self.motion_counter >= self.min_motion_frames:
-
                         # write the image to disk
                         pic_path = self.make_picture_path()
                         cv2.imwrite(pic_path, frame)
 
                         # send_mms
                         sys.stdout.write(
-                            "\nMotion detected!!! Recording a {} second clip".format(self.video_duration))
+                            "\nMotion detected!!! Recording a {} second clip"
+                            .format(self.video_duration)
+                        )
                         vid_path = self.take_video(self.video_duration)
                         self.send_mms(pic_path, vid_path)
 
@@ -222,9 +233,11 @@ class py_sPi(object):
         """
             Takes a raw .h264 video and converts to .mp4
 
-            param: duration: an int representing the length of video to be taken
+            param: duration: an int representing the length of video to be
+            taken
 
-            returns: the relative path to said video or None if something fails during mp4 conversion
+            returns: the relative path to said video or None if something fails
+            during mp4 conversion
         """
         sys.stdout.write("\nTaking Video")
 
@@ -239,12 +252,13 @@ class py_sPi(object):
             os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
             return new_vid_path
         except Exception as e:
+            sys.stdout.write("MP4 Converison Error {}".format(e))
             return None
 
     def send_mms(self, picture_path, video_path):
         """
-            Takes a relative path to a picture and video and attempts to 
-            send MMS messages that include a download link to said video 
+            Takes a relative path to a picture and video and attempts to
+            send MMS messages that include a download link to said video
             to a preset list of recipients
 
             param: picture_path: relative path to a picture on disk (.jpg)
@@ -266,27 +280,30 @@ class py_sPi(object):
 
         def twilio_send(recipients):
             """
-                Recursive method to ensure that all message are 
+                Recursive method to ensure that all message are
                 properly sent to each recipient defined
 
-                NOTE: I had to introduce this feature because twilio 
+                NOTE: I had to introduce this feature because twilio
                 would raise httplib2.ServerNotFoundError-s periodically
 
-                param: recipients: dict in the form of  {<phone_number>: <message_send_state>, ...}
-                returns: the same recipients dict with updated <message_send_states> 
+                param: recipients: dict in the form of
+                {<phone_number>: <message_send_state>, ...}
+                returns: the same recipients dict with updated
+                <message_send_states>
             """
             global RETRY_TWILIO_SEND
 
             if RETRY_TWILIO_SEND > 5:
                 sys.stdout.write(
-                    "\nCan't reach twilio :( Waiting for a minute then trying again")
+                    "\nCan't reach twilio :( Waiting for a minute then trying "
+                    "again")
 
                 time.sleep(60)
                 RETRY_TWILIO_SEND = 0
 
             for number in recipients:
                 try:
-                    message = self.client.messages.create(
+                    self.client.messages.create(
                         to=number,
                         from_="+15106626969",
                         body=body,
@@ -307,9 +324,8 @@ class py_sPi(object):
 
             for recipient in recipients:
                 if recipients[recipient] == "FAILURE":
-
-                    recipients_temp[
-                        recipient] = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    recipients_temp[recipient] = \
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
             recipients = twilio_send(recipients_temp)
 
@@ -317,14 +333,15 @@ class py_sPi(object):
 
     def make_picture_path(self):
         """
-            Return a unique path for jpgs so we can ensure we're fetching 
+            Return a unique path for jpgs so we can ensure we're fetching
             only one file in our Flask calls
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
     def make_twilio_url(self, path):
         """
-            Return a full url representitive of the Flask server that is running in parallel
+            Return a full url representative of the Flask server that is
+            running in parallel
         """
         path = path.replace("pics/", "")
         path = path.replace("vids/", "")
