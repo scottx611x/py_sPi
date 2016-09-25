@@ -1,4 +1,4 @@
-<h2><img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/cb/Raspberry_Pi_Logo.svg/810px-Raspberry_Pi_Logo.svg.png" height="25px" width="20px" />py_sPi  &nbsp; <a href="https://travis-ci.org/scottx611x/py_sPi"><img src="https://travis-ci.org/scottx611x/py_sPi.svg?branch=master"/></a> &nbsp; <a href="https://codecov.io/gh/scottx611x/py_sPi">
+<h2><img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/cb/Raspberry_Pi_Logo.svg/810px-Raspberry_Pi_Logo.svg.png" height="25px" width="20px" />py_sPi  &nbsp; <a href="https://travis-ci.org/scottx611x/py_sPi"><img src="https://api.travis-ci.org/scottx611x/py_sPi.svg"/></a> &nbsp; <a href="https://codecov.io/gh/scottx611x/py_sPi">
   <img src="https://codecov.io/gh/scottx611x/py_sPi/branch/master/graph/badge.svg" alt="Codecov" />
 </a></h2> 
 
