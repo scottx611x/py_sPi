@@ -1,24 +1,28 @@
-#!usr/bin/bash
+#!/bin/bash
 
-# sudo dpkg-reconfigure dash -> select NO!
-python -m utils.day_or_night
+# Most Rpi's don't have bash, but have "dash"
+# sudo dpkg-reconfigure dash -> select NO if necessary
+
 sudo sh scripts/make_cron.sh
 
-sudo killall python
+sudo kill -9 $(pidof flask_server)
+sudo kill -9 $(pidof py_sPi)
+
+# Remove old nohup log
 sudo rm -rf nohup.out
+
+# Make our dirs for pics and vids if need be
 mkdir -p vids
 mkdir -p pics
 
-#pip install virtualenvwrapper==4.7.0
-
-#export PATH=/usr/local/bin:$PATH
-#source /usr/local/bin/virtualenvwrapper.sh
-
-#mkvirtualenv py_sPi
-#workon py_sPi
+# Install requirements
 pip install -r requirements.txt
+
+# Run our flask server & py_sPi script
 sudo nohup python flask_server.py &
 sleep 5
 nohup python py_sPi.py &
+
+# Peep the output
 sudo tail -f nohup.out
 
