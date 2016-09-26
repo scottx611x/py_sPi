@@ -11,7 +11,7 @@ Example message:
 ##TO-DO:
 [picamera docs](https://picamera.readthedocs.io/en/release-1.12/)
 - [ ] Move more configurables into config.json
-- [ ] Tests
+- [ ] More tests & fix codecov
 - [ ] Utilize: ` with picamera.PiCamera() as camera:`
 - [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
