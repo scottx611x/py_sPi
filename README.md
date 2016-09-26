@@ -9,11 +9,10 @@ Example message:
 <img src="https://cloud.githubusercontent.com/assets/5629547/18835625/01c33b24-83ca-11e6-893d-be401a0e6ec9.jpg" height="500px" />
 
 ##TO-DO:
-[picamera docs](https://picamera.readthedocs.io/en/release-1.12/)
 - [ ] Move more configurables into config.json
 - [ ] More tests & fix codecov
 - [ ] Utilize: ` with picamera.PiCamera() as camera:`
-- [ ] start `run.sh` in a crontab on every reboot (add rm -rf on `nohup.out`)
+- [ ] find pid of python scripts & kill them rather than `killall pyhton`
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
 - [ ] [Dockerize](https://github.com/umiddelb/armhf/wiki/Get-Docker-up-and-running-on-the-RaspberryPi-(ARMv6)-in-four-steps-(Wheezy))
