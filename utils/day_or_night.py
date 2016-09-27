@@ -17,7 +17,7 @@ except IOError as e:
 
 def day_or_night_check():
     # Lat, Long tuple for Lewiston, ME
-    gps_coords = (settings.COORDS.LAT, settings.COORDS.LONG)
+    gps_coords = (settings["COORDS"]["LAT"], settings["COORDS"].["LONG"])
 
     api_url = \
         'http://api.sunrise-sunset.org/json?lat={}&lng={}&formatted=0'.format(
