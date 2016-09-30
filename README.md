@@ -9,6 +9,7 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 <img src="https://cloud.githubusercontent.com/assets/5629547/18835625/01c33b24-83ca-11e6-893d-be401a0e6ec9.jpg" height="500px" />
 
 ##TO-DO:
+- [ ] yaml instead of json so one can write comments
 - [ ] More Verbose README - installation, contributing etc.
 - [ ] Move more configurables into config.json
 - [ ] More tests & fix codecov
