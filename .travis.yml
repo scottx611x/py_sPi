@@ -17,11 +17,11 @@ env:
 script:
   - cp /usr/bin/qemu-arm-static ${DISTRO}/
   - docker build -t sedden/rpi-raspbian-qemu:${DISTRO} ${DISTRO}/
-  - docker run --rm -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running $DISTRO build...'
-  - docker run apt-get install python2.7-dev
-  - docker run pip install -r requirements.txt
-  - docker run flake8 ..
-  - docker run nosetests
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running ' $DISTRO ' build...'
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get install python2.7-dev
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} pip install -r requirements.txt
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} flake8 ..
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} nosetests
 
 after_success:
   - codecov

@@ -17,4 +17,4 @@ env:
 script:
   - cp /usr/bin/qemu-arm-static ${DISTRO}/
   - docker build -t sedden/rpi-raspbian-qemu:${DISTRO} ${DISTRO}/
-  - docker run --rm -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running ${DISTRO} build...'
+  - docker run --rm -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running ' $DISTRO ' build...'
