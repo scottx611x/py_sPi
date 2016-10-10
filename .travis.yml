@@ -18,6 +18,9 @@ script:
   - cp /usr/bin/qemu-arm-static ${DISTRO}/
   - docker build -t sedden/rpi-raspbian-qemu:${DISTRO} ${DISTRO}/
   - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running ' $DISTRO ' build...'
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get update
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get upgrade
+  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} rpi-update
   - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get install python2.7-dev
   - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} pip install -r requirements.txt
   - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} flake8 ..
