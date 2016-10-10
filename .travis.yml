@@ -21,6 +21,7 @@ script:
   - docker run ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
   - docker run ${IMAGE} sudo apt-get update
   - docker run ${IMAGE} sudo apt-get upgrade
+  - docker run ${IMAGE} sudo apt-cache search python*
   - docker run ${IMAGE} sudo apt-get install python python-dev python-pip
   - docker run ${IMAGE} pip install -r requirements.txt
   - docker run ${IMAGE} flake8 ..
