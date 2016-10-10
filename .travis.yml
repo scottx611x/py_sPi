@@ -20,8 +20,7 @@ script:
   - docker run -i -t ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
   - docker run -i -t ${IMAGE} sudo apt-get update
   - docker run -i -t ${IMAGE} sudo apt-get upgrade
-  - docker run -i -t ${IMAGE} sudo apt-get install python2.7
-  - docker run -i -t ${IMAGE} sudo apt-get install python2.7-dev
+  - docker run -i -t ${IMAGE} sudo apt-get install python python-dev python-pip
   - docker run -i -t ${IMAGE} pip install -r requirements.txt
   - docker run -i -t ${IMAGE} flake8 ..
   - docker run -i -t ${IMAGE} nosetests
