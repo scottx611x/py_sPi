@@ -10,12 +10,12 @@ then
 else
 	# Echo new cronjobs into file
     # These jobs below will remove files older than one week in our pics & vids directories
-    echo "0 2 * * 0 sudo find ~/Code/python/py_sPi/pics/*.jpg -mtime +7 -exec rm {} \;" >> coffee_is_tasty
-    echo "0 2 * * 0 sudo find ~/Code/python/py_sPi/vids/*.mp4 -mtime +7 -exec rm {} \;" >> coffee_is_tasty
-    echo "0 2 * * 0 sudo find ~/Code/python/py_sPi/vids/*.h264 -mtime +7 -exec rm {} \;" >> coffee_is_tasty
+    echo "0 0 2 ? * SUN * sudo find ~/Code/python/py_sPi/pics/*.jpg -mtime +7 -exec rm {} \;" >> coffee_is_tasty
+    echo "0 0 2 ? * SUN * sudo find ~/Code/python/py_sPi/vids/*.mp4 -mtime +7 -exec rm {} \;" >> coffee_is_tasty
+    echo "0 0 2 ? * SUN * sudo find ~/Code/python/py_sPi/vids/*.h264 -mtime +7 -exec rm {} \;" >> coffee_is_tasty
 
-	# Run script to send sms to confirm cleanup job ran
-	echo "0 2 * * 0 sudo python ~/Code/python/py_sPi/scripts/cleanup_sms.py" >> coffee_is_tasty
+    # Run script to send sms to confirm cleanup job ran
+    echo "0 0 2 ? * SUN * sudo python ~/Code/python/py_sPi/scripts/cleanup_sms.py" >> coffee_is_tasty
 
     # Install new cron file
     crontab coffee_is_tasty
