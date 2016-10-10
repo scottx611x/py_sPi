@@ -8,23 +8,18 @@ install: true
 before_script:
   - sudo apt-get --yes --no-install-recommends install binfmt-support qemu-user-static
   - echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' | sudo tee -a /proc/sys/fs/binfmt_misc/register
-
-env:
-  - DISTRO=wheezy IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
-  - DISTRO=jessie IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
-  - DISTRO=latest IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
+  - docker pull sedden/rpi-raspbian-qemu:wheezy
 
 script:
-  - cp /usr/bin/qemu-arm-static ${DISTRO}/
-  - docker build -t ${IMAGE} ${DISTRO}/
-  - docker run -it ${IMAGE} cat /etc/issue
-  - docker run -it ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
-  - docker run -it ${IMAGE} apt-get update
-  - docker run -it ${IMAGE} apt-get upgrade
-  - docker run -it ${IMAGE} apt-get install -y python2.7
-  - docker run -it ${IMAGE} pip install -r requirements.txt
-  - docker run -it ${IMAGE} flake8 ..
-  - docker run -it ${IMAGE} nosetests
+  - docker build -t au/test .
+  - docker run -it au/test cat /etc/issue
+  - docker run -it au/test /bin/echo 'Running ' $DISTRO ' build...'
+  - docker run -it au/test apt-get update
+  - docker run -it au/test apt-get upgrade
+  - docker run -it au/test apt-get install -y python2.7
+  - docker run -it au/test pip install -r requirements.txt
+  - docker run -it au/test flake8 ..
+  - docker run -it au/test nosetests
 
 after_success:
   - codecov
