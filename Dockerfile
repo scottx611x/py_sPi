@@ -3,11 +3,6 @@ sudo: required
 services:
   - docker
 
-language: python
-
-python:
-  - 2.7
-
 install: true
 
 before_script:
@@ -20,13 +15,3 @@ script:
   - docker run -it au/test uname -a
   - docker run -it au/test go version
   - docker run -it au/test make check
-  - pip install -r requirements.txt
-  - flake8 ..
-  - nosetests
-
-after_success:
-  - codecov
-
-notifications:
-  email: scottx611x@gmail.com
-  slack: pyspi:d8W7mttSSVkSbFkD1pItorto
