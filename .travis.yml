@@ -10,20 +10,21 @@ before_script:
   - echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' | sudo tee -a /proc/sys/fs/binfmt_misc/register
 
 env:
-  - DISTRO=wheezy
-  - DISTRO=jessie
-  - DISTRO=latest
+  - DISTRO=wheezy IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
+  - DISTRO=jessie IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
+  - DISTRO=latest IMAGE=sedden/rpi-raspbian-qemu:${DISTRO}
 
 script:
   - cp /usr/bin/qemu-arm-static ${DISTRO}/
-  - docker build -t sedden/rpi-raspbian-qemu:${DISTRO} ${DISTRO}/
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} /bin/echo 'Running ' $DISTRO ' build...'
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get update
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get upgrade
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} apt-get install python2.7-dev
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} pip install -r requirements.txt
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} flake8 ..
-  - docker run -i -t sedden/rpi-raspbian-qemu:${DISTRO} nosetests
+  - docker build -t ${IMAGE} ${DISTRO}/
+  - docker run -i -t ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
+  - docker run -i -t ${IMAGE} apt-get update
+  - docker run -i -t ${IMAGE} apt-get upgrade
+  - docker run -i -t ${IMAGE} apt-get install python2.7
+  - docker run -i -t ${IMAGE} apt-get install python2.7-dev
+  - docker run -i -t ${IMAGE} pip install -r requirements.txt
+  - docker run -i -t ${IMAGE} flake8 ..
+  - docker run -i -t ${IMAGE} nosetests
 
 after_success:
   - codecov
