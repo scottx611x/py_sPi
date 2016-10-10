@@ -17,15 +17,14 @@ env:
 script:
   - cp /usr/bin/qemu-arm-static ${DISTRO}/
   - docker build -t ${IMAGE} ${DISTRO}/
-  - docker run ${IMAGE} cat /etc/issue
-  - docker run ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
-  - docker run ${IMAGE} sudo apt-get update
-  - docker run ${IMAGE} sudo apt-get upgrade
-  - docker run ${IMAGE} sudo apt-cache search python*
-  - docker run ${IMAGE} sudo apt-get install python python-dev python-pip
-  - docker run ${IMAGE} pip install -r requirements.txt
-  - docker run ${IMAGE} flake8 ..
-  - docker run ${IMAGE} nosetests
+  - docker run -it ${IMAGE} cat /etc/issue
+  - docker run -it ${IMAGE} /bin/echo 'Running ' $DISTRO ' build...'
+  - docker run -it ${IMAGE} apt-get update
+  - docker run -it ${IMAGE} apt-get upgrade
+  - docker run -it ${IMAGE} apt-get install -y python2.7
+  - docker run -it ${IMAGE} pip install -r requirements.txt
+  - docker run -it ${IMAGE} flake8 ..
+  - docker run -it ${IMAGE} nosetests
 
 after_success:
   - codecov
