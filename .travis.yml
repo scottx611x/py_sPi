@@ -11,15 +11,14 @@ before_script:
   - docker pull sedden/rpi-raspbian-qemu:wheezy
 
 script:
-  - docker build -t au/test .
-  - docker run -it au/test cat /etc/issue
-  - docker run -it au/test /bin/echo 'Running ' $DISTRO ' build...'
-  - docker run -it au/test apt-get update
-  - docker run -it au/test apt-get upgrade
-  - docker run -it au/test apt-get install -y python2.7
-  - docker run -it au/test pip install -r requirements.txt
-  - docker run -it au/test flake8 ..
-  - docker run -it au/test nosetests
+  - docker build -t sedden/rpi-raspbian-qemu:wheezy wheezy/
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy cat /etc/issue
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy apt-get update
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy apt-get upgrade
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy apt-get install -y python2.7
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy pip install -r requirements.txt
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy flake8 ..
+  - docker run -it sedden/rpi-raspbian-qemu:wheezy nosetests
 
 after_success:
   - codecov
