@@ -17,15 +17,18 @@ except IOError as e:
 
 def day_or_night_check():
     # Lat, Long tuple for Lewiston, ME
-    gps_coords = (settings["COORDS"]["LAT"], settings["COORDS"].["LONG"])
+    gps_coords = (settings["COORDS"]["LAT"], settings["COORDS"]["LONG"])
 
     api_url = \
         'http://api.sunrise-sunset.org/json?lat={}&lng={}&formatted=0'.format(
             gps_coords[0], gps_coords[1])
 
-    response = json.loads(
-        urlopen(api_url).read()
-    )
+    try:
+        response = json.loads(urlopen(api_url).read())
+    except Exception as e:
+        sys.stderr.write(e)
+        return "Error"
+
     sys.stdout.write(
         "\n sunrise-sunset api response: {}".format(response['status']))
 

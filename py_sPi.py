@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 # Scott Ouellette | scottx611x@gmail.com
 
 # --------------------------------------
@@ -269,7 +269,8 @@ class py_sPi(object):
         sys.stdout.write("\nSending MMS message")
 
         body = ""
-        numbers = ["+12075136000", "+12077547135"]
+        # numbers = ["+12075136000", "+12077547135"]
+	numbers = ["+12075136000"]
         recipient_states = {item: None for item in numbers}
 
         if video_path:
