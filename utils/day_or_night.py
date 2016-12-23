@@ -2,7 +2,6 @@
 # Scott Ouellette | scottx611x@gmail.com
 
 # --------------------------------------
-import json
 import ephem
 
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 # Scott Ouellette | scottx611x@gmail.com
 
 # --------------------------------------
@@ -222,6 +222,86 @@ class py_sPi(object):
             print("MP4 Converison Error {}".format(e))
             return None
 
+<<<<<<< HEAD
+=======
+    def send_mms(self, picture_path, video_path):
+        """
+            Takes a relative path to a picture and video and attempts to
+            send MMS messages that include a download link to said video
+            to a preset list of recipients
+
+            param: picture_path: relative path to a picture on disk (.jpg)
+            param: video_path: relative path to a video (.mp4)
+
+        """
+        global RETRY_TWILIO_SEND
+        sys.stdout.write("\nSending MMS message")
+
+        body = ""
+        # numbers = ["+12075136000", "+12077547135"]
+	numbers = ["+12075136000"]
+        recipient_states = {item: None for item in numbers}
+
+        if video_path:
+            body = "Motion detected! Video link: {}".format(
+                self.make_twilio_url(video_path))
+        else:
+            body = "Motion detected!"
+
+        def twilio_send(recipients):
+            """
+                Recursive method to ensure that all message are
+                properly sent to each recipient defined
+
+                NOTE: I had to introduce this feature because twilio
+                would raise httplib2.ServerNotFoundError-s periodically
+
+                param: recipients: dict in the form of
+                {<phone_number>: <message_send_state>, ...}
+                returns: the same recipients dict with updated
+                <message_send_states>
+            """
+            global RETRY_TWILIO_SEND
+
+            if RETRY_TWILIO_SEND > 5:
+                sys.stdout.write(
+                    "\nCan't reach twilio :( Waiting for a minute then trying "
+                    "again")
+
+                time.sleep(60)
+                RETRY_TWILIO_SEND = 0
+
+            for number in recipients:
+                try:
+                    self.client.messages.create(
+                        to=number,
+                        from_="+15106626969",
+                        body=body,
+                        media_url=["{}".format(
+                            self.make_twilio_url(picture_path))]
+                    )
+                    recipients[number] = "SUCCESS"
+
+                except (httplib2.ServerNotFoundError, Exception):
+                    recipients[number] = "FAILURE"
+
+            return recipients
+
+        recipients = twilio_send(recipient_states)
+
+        while recipients:
+            recipients_temp = {}
+
+            for recipient in recipients:
+                if recipients[recipient] == "FAILURE":
+                    recipients_temp[recipient] = \
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+            recipients = twilio_send(recipients_temp)
+
+        RETRY_TWILIO_SEND = 0
+
+>>>>>>> e6722f6651c46e22d5361957651a5321c136eb06
     def make_picture_path(self):
         """
             Return a unique path for jpgs so we can ensure we're fetching
