@@ -13,7 +13,7 @@ mkdir -p vids
 mkdir -p pics
 
 # Install requirements
-pip install -r requirements.txt
+sudo pip install -r requirements.txt
 
 # Run our py_sPi script
 nohup python py_sPi.py &
