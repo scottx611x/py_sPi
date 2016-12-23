@@ -4,6 +4,7 @@
 # --------------------------------------
 
 import os
+import cv2
 import dropbox
 import sys
 import time
@@ -228,7 +229,7 @@ class py_sPi(object):
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
-    def dropbox_upload(self, **file_paths):
+    def dropbox_upload(self, *file_paths):
         for path in file_paths:
             with open(path, 'rb') as f:
                 data = f.read()
