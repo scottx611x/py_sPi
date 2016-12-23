@@ -36,7 +36,7 @@ class py_sPi(object):
     """
 
     camera = PiCamera()
-    dbx = dropbox.Dropbox(settings.DROPBOX_ACCESS_TOKEN)
+    dbx = dropbox.Dropbox(settings["DROPBOX_ACCESS_TOKEN"])
 
     def __init__(self, framerate, resolution, pi_type):
         self.start_time = datetime.now()
@@ -242,5 +242,5 @@ class py_sPi(object):
                 print(e)
 
 
-cam = py_sPi(30, (1920, 1080), settings.PI_TYPE)
+cam = py_sPi(30, (1920, 1080), settings["PI_TYPE"])
 cam.detect_motion()
