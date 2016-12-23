@@ -1,11 +1,4 @@
 {
-  "WEBSERVER_REMOTE_IP": "",
-  "WEBSERVER_PORT": "",
-  "TWILIO_ACCOUNT": "",
-  "TWILIO_TOKEN": "",
-  "PI_TYPE": "CAN BE SET TO NIGHT_PI or DAY_PI"
-  "COORDS": {
-    "LAT": "xxxx",
-    "LONG": "xxxx"
-  }
+  "DROPBOX_ACCESS_TOKEN": "",
+  "PI_TYPE": "CAN BE SET TO NIGHT_PI or DAY_PI",
 }

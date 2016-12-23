@@ -4,21 +4,15 @@
 # --------------------------------------
 
 import os
-import cv2
+import dropbox
 import sys
 import time
 import json
 import uuid
-import httplib2
-from werkzeug.urls import url_fix
 from datetime import datetime, timedelta
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-from twilio.rest import TwilioRestClient
-from utils.day_or_night import day_or_night_check
-
-global RETRY_TWILIO_SEND
-RETRY_TWILIO_SEND = 0
+from utils.day_or_night import day_or_night_pi
 
 try:
     with open("config.json", 'r') as f:
@@ -41,38 +35,19 @@ class py_sPi(object):
     """
 
     camera = PiCamera()
-
-    # Fetch some settings
-    webserver_ip = settings["WEBSERVER_REMOTE_IP"]
-    webserver_port = settings["WEBSERVER_PORT"]
-    account = settings["TWILIO_ACCOUNT"]
-    token = settings["TWILIO_TOKEN"]
-
-    client = TwilioRestClient(account, token)
+    dbx = dropbox.Dropbox(settings.DROPBOX_ACCESS_TOKEN)
 
     def __init__(self, framerate, resolution, pi_type):
         self.start_time = datetime.now()
 
         self.pi_type = pi_type
 
-        try:
-            self.client.messages.create(
-                to="+12075136000",
-                from_="+15106626969",
-                body="py_sPi is starting on {} @ {}".format(self.pi_type,
-                                                            self.start_time),
-            )
-        except httplib2.ServerNotFoundError:
-            # Twilio should provide a better error here, but I guess I can deal
-            # without a startup text if things break :)
-            sys.stdout.write("\nCan't reach twilio :(")
-
-        sys.stdout.write("\nCamera initializing")
+        print("Camera initializing")
 
         self.camera.framerate = framerate
         self.camera.resolution = resolution
 
-        sys.stdout.write("\nStarting raw capture")
+        print("Starting raw capture")
 
         self.raw_capture = PiRGBArray(self.camera, size=resolution)
 
@@ -104,10 +79,10 @@ class py_sPi(object):
         self.last_saved = datetime.now()
         self.motion_counter = 0
 
-        sys.stdout.write("\nCamera initialized")
+        print("Camera initialized")
 
     def detect_motion(self):
-        sys.stdout.write("\nDetecting Motion")
+        print("Detecting Motion")
 
         self.last_checked_time = self.start_time
 
@@ -121,30 +96,24 @@ class py_sPi(object):
             text = "NO_MOTION"
 
             if self.last_checked_time <= timestamp - timedelta(minutes=45):
-                sys.stdout.write("Timestamp: {}".format(timestamp))
-                sys.stdout.flush()
+                print("Timestamp: {}".format(timestamp))
+
                 self.last_checked_time = timestamp
-                day_or_night_pi = day_or_night_check()
 
                 # Check if its the right time of day to run our type of Pi
                 # We'll sleep for an hour and check again
-                if day_or_night_pi != self.pi_type:
-                    sys.stdout.write(
-                        "\nNot the right time to run our {}".format(
+                day_or_night = day_or_night_pi()
+                if day_or_night != self.pi_type:
+                    print("Not the right time to run our {}".format(
                             self.pi_type))
-                    sys.stdout.write(
-                        "\nday_or_night_check returned: {}".format(
-                            day_or_night_pi))
-                    sys.stdout.flush()
+                    print("day_or_night_check returned: {}".format(
+                            day_or_night))
                     time.sleep(3600)
                 else:
-                    sys.stdout.write(
-                        "\nIt's the right time to run our {}".format(
+                    print("It's the right time to run our {}".format(
                             self.pi_type))
-                    sys.stdout.write(
-                        "\nday_or_night_check returned: {}".format(
-                            day_or_night_pi))
-                    sys.stdout.flush()
+                    print("day_or_night_check returned: {}".format(
+                            day_or_night))
 
             # convert frame to grayscale, and blur it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -207,13 +176,10 @@ class py_sPi(object):
                         pic_path = self.make_picture_path()
                         cv2.imwrite(pic_path, frame)
 
-                        # send_mms
-                        sys.stdout.write(
-                            "\nMotion detected!!! Recording a {} second clip"
-                            .format(self.video_duration)
-                        )
+                        print("Motion detected!!! Recording a {} second "
+                              "clip".format(self.video_duration))
                         vid_path = self.take_video(self.video_duration)
-                        self.send_mms(pic_path, vid_path)
+                        self.dropbox_upload(pic_path, vid_path)
 
                         # update the last uploaded timestamp and reset the
                         # motion counter
@@ -227,8 +193,6 @@ class py_sPi(object):
             # clear the stream in preparation for the next frame
             self.raw_capture.truncate(0)
 
-            sys.stdout.flush()
-
     def take_video(self, duration):
         """
             Takes a raw .h264 video and converts to .mp4
@@ -239,97 +203,23 @@ class py_sPi(object):
             returns: the relative path to said video or None if something fails
             during mp4 conversion
         """
-        sys.stdout.write("\nTaking Video")
+        print("Taking Video")
 
         vid_path = 'vids/{}.h264'.format(uuid.uuid4()).replace("-", "")
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
-        sys.stdout.write("\nWrote {} to disk.".format(vid_path))
+        print("Wrote {} to disk.".format(vid_path))
 
         new_vid_path = vid_path.replace("h264", "mp4")
+
         try:
             os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
+            os.remove(vid_path)
             return new_vid_path
         except Exception as e:
-            sys.stdout.write("MP4 Converison Error {}".format(e))
+            print("MP4 Converison Error {}".format(e))
             return None
-
-    def send_mms(self, picture_path, video_path):
-        """
-            Takes a relative path to a picture and video and attempts to
-            send MMS messages that include a download link to said video
-            to a preset list of recipients
-
-            param: picture_path: relative path to a picture on disk (.jpg)
-            param: video_path: relative path to a video (.mp4)
-
-        """
-        global RETRY_TWILIO_SEND
-        sys.stdout.write("\nSending MMS message")
-
-        body = ""
-        numbers = ["+12075136000", "+12077547135"]
-        recipient_states = {item: None for item in numbers}
-
-        if video_path:
-            body = "Motion detected! Video link: {}".format(
-                self.make_twilio_url(video_path))
-        else:
-            body = "Motion detected!"
-
-        def twilio_send(recipients):
-            """
-                Recursive method to ensure that all message are
-                properly sent to each recipient defined
-
-                NOTE: I had to introduce this feature because twilio
-                would raise httplib2.ServerNotFoundError-s periodically
-
-                param: recipients: dict in the form of
-                {<phone_number>: <message_send_state>, ...}
-                returns: the same recipients dict with updated
-                <message_send_states>
-            """
-            global RETRY_TWILIO_SEND
-
-            if RETRY_TWILIO_SEND > 5:
-                sys.stdout.write(
-                    "\nCan't reach twilio :( Waiting for a minute then trying "
-                    "again")
-
-                time.sleep(60)
-                RETRY_TWILIO_SEND = 0
-
-            for number in recipients:
-                try:
-                    self.client.messages.create(
-                        to=number,
-                        from_="+15106626969",
-                        body=body,
-                        media_url=["{}".format(
-                            self.make_twilio_url(picture_path))]
-                    )
-                    recipients[number] = "SUCCESS"
-
-                except (httplib2.ServerNotFoundError, Exception):
-                    recipients[number] = "FAILURE"
-
-            return recipients
-
-        recipients = twilio_send(recipient_states)
-
-        while recipients:
-            recipients_temp = {}
-
-            for recipient in recipients:
-                if recipients[recipient] == "FAILURE":
-                    recipients_temp[recipient] = \
-                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-
-            recipients = twilio_send(recipients_temp)
-
-        RETRY_TWILIO_SEND = 0
 
     def make_picture_path(self):
         """
@@ -338,19 +228,18 @@ class py_sPi(object):
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
-    def make_twilio_url(self, path):
-        """
-            Return a full url representative of the Flask server that is
-            running in parallel
-        """
-        path = path.replace("pics/", "")
-        path = path.replace("vids/", "")
-        return "http://{}:{}/{}".format(
-            self.webserver_ip,
-            self.webserver_port,
-            url_fix(path))
+    def dropbox_upload(self, **file_paths):
+        for path in file_paths:
+            with open(path, 'rb') as f:
+                data = f.read()
+            try:
+                response = self.dbx.files_upload(data, path, autorename=True)
+                # remove local copy
+                os.remove(path)
+                print(response)
+            except Exception as e:
+                print(e)
 
 
-PI_TYPE = settings["PI_TYPE"]
-cam = py_sPi(30, (1920, 1080), PI_TYPE)
+cam = py_sPi(30, (1920, 1080), settings.PI_TYPE)
 cam.detect_motion()
