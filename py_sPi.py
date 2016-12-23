@@ -6,6 +6,7 @@
 import os
 import cv2
 import dropbox
+import threading
 import sys
 import time
 import json
@@ -180,7 +181,7 @@ class py_sPi(object):
                         print("Motion detected!!! Recording a {} second "
                               "clip".format(self.video_duration))
                         vid_path = self.take_video(self.video_duration)
-                        self.dropbox_upload(pic_path, vid_path)
+                        self.async_upload(pic_path, vid_path)
 
                         # update the last uploaded timestamp and reset the
                         # motion counter
@@ -240,6 +241,13 @@ class py_sPi(object):
                 print(response)
             except Exception as e:
                 print(e)
+
+    def async_upload(self, pic_path, vid_path):
+        # do some stuff
+        upload_thread = threading.Thread(target=self.dropbox_upload,
+                                         args=(pic_path, vid_path))
+        upload_thread.start()
+        # continue doing stuff
 
 
 cam = py_sPi(30, (1920, 1080), settings["PI_TYPE"])
