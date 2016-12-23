@@ -231,12 +231,12 @@ class py_sPi(object):
 
     def dropbox_upload(self, *file_paths):
         for path in file_paths:
-            with open(path, 'rb') as f:
+            with open(os.path.abspath(path), 'rb') as f:
                 data = f.read()
             try:
-                response = self.dbx.files_upload(data, path, autorename=True)
+                response = self.dbx.files_upload(data, os.path.abspath(path), autorename=True)
                 # remove local copy
-                os.remove(path)
+                os.remove(os.path.abspath(path))
                 print(response)
             except Exception as e:
                 print(e)
