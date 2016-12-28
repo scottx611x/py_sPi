@@ -16,8 +16,8 @@ from twilio.rest import TwilioRestClient
 from dropbox.exceptions import ApiError
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-from utils import day_or_night_pi, run_in_thread
 
+import utils
 
 global RETRY_TWILIO_SEND
 RETRY_TWILIO_SEND = 0
@@ -112,7 +112,7 @@ class py_sPi(object):
 
                 # Check if its the right time of day to run our type of Pi
                 # We'll sleep for an hour and check again
-                day_or_night = day_or_night_pi()
+                day_or_night = utils.day_or_night_pi()
                 if day_or_night != self.pi_type:
                     stdout.write("Not the right time to run our {}".format(
                         self.pi_type))
@@ -204,7 +204,7 @@ class py_sPi(object):
             # clear the stream in preparation for the next frame
             self.raw_capture.truncate(0)
 
-    @run_in_thread
+    @utils.run_in_thread
     def take_video(self, duration):
         """
             Takes a raw .h264 video and converts to .mp4
@@ -240,7 +240,7 @@ class py_sPi(object):
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
-    @run_in_thread
+    @utils.run_in_thread
     def dropbox_upload(self, path):
         """
         :param path: Full filesystem path of file to be uploaded
@@ -259,7 +259,7 @@ class py_sPi(object):
                 # send mms using url of succesfully uploaded file
                 self.send_mms(response.url)
 
-    @run_in_thread
+    @utils.run_in_thread
     def send_mms(self, dropbox_url):
         """
             Takes a relative path to a picture and video and attempts to
