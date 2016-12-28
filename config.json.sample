@@ -1,4 +1,6 @@
 {
   "DROPBOX_ACCESS_TOKEN": "",
   "PI_TYPE": "CAN BE SET TO NIGHT_PI or DAY_PI",
+  "TWILIO_ACCOUNT": "",
+  "TWILIO_TOKEN": "",
 }
