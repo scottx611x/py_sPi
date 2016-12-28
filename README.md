@@ -9,6 +9,8 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 <img src="https://cloud.githubusercontent.com/assets/5629547/18835625/01c33b24-83ca-11e6-893d-be401a0e6ec9.jpg" height="500px" />
 
 ##TO-DO:
+- [ ] tests...
+- [ ] fix travis ci
 - [ ] yaml instead of json so one can write comments
 - [ ] More Verbose README - installation, contributing etc.
 - [ ] Move more configurables into config.json
@@ -17,8 +19,8 @@ Surveillance system using a RaspberryPi and V2 Camera in python
 - [ ] find pid of python scripts & kill them rather than `killall pyhton`
 - [ ] Fetch a remote script to automate install process & fetching of dependencies
   - **NOTE**: Pi-hole does: `curl -L https://install.pi-hole.net | bash`
-- [ ] [Dockerize](https://github.com/umiddelb/armhf/wiki/Get-Docker-up-and-running-on-the-RaspberryPi-(ARMv6)-in-four-steps-(Wheezy))
-
+- [ ] link to .img with open CV already installed in instructions
+- [ ] optional twilio usage ???
 
 
 
