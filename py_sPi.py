@@ -71,12 +71,12 @@ class py_sPi(object):
 
         self.pi_type = pi_type
 
-        stdout.write("Camera initializing")
+        stdout.write("\nCamera initializing")
 
         self.camera.framerate = framerate
         self.camera.resolution = resolution
 
-        stdout.write("Starting raw capture")
+        stdout.write("\nStarting raw capture")
 
         self.raw_capture = PiRGBArray(self.camera, size=resolution)
 
@@ -108,10 +108,10 @@ class py_sPi(object):
         self.last_saved = datetime.now()
         self.motion_counter = 0
 
-        stdout.write("Camera initialized")
+        stdout.write("\nCamera initialized")
 
     def detect_motion(self):
-        stdout.write("Detecting Motion")
+        stdout.write("\nDetecting Motion")
 
         self.last_checked_time = self.start_time
 
@@ -129,7 +129,7 @@ class py_sPi(object):
             text = "NO_MOTION"
 
             if self.last_checked_time <= timestamp - timedelta(minutes=45):
-                stdout.write("Timestamp: {}".format(timestamp))
+                stdout.write("\nTimestamp: {}".format(timestamp))
 
                 self.last_checked_time = timestamp
 
@@ -137,15 +137,15 @@ class py_sPi(object):
                 # We'll sleep for an hour and check again
                 day_or_night = day_or_night_pi()
                 if day_or_night != self.pi_type:
-                    stdout.write("Not the right time to run our {}".format(
+                    stdout.write("\nNot the right time to run our {}".format(
                         self.pi_type))
-                    stdout.write("day_or_night_check returned: {}".format(
+                    stdout.write("\nday_or_night_check returned: {}".format(
                         day_or_night))
                     time.sleep(3600)
                 else:
-                    stdout.write("It's the right time to run our {}".format(
+                    stdout.write("\nIt's the right time to run our {}".format(
                         self.pi_type))
-                    stdout.write("day_or_night_check returned: {}".format(
+                    stdout.write("\nday_or_night_check returned: {}".format(
                         day_or_night))
 
             # convert frame to grayscale, and blur it
@@ -210,7 +210,7 @@ class py_sPi(object):
                         cv2.imwrite(pic_path, frame)
                         self.dropbox_upload(pic_path)
 
-                        stdout.write("Motion detected!!! Recording a {} "
+                        stdout.write("\nMotion detected!!! Recording a {} "
                                      "second "
                                      "clip".format(self.video_duration))
                         self.take_video(self.video_duration)
@@ -238,13 +238,13 @@ class py_sPi(object):
             returns: the relative path to said video or None if something fails
             during mp4 conversion
         """
-        stdout.write("Taking Video")
+        stdout.write("\nTaking Video")
 
         vid_path = 'vids/{}.h264'.format(uuid.uuid4()).replace("-", "")
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
-        stdout.write("Wrote {} to disk.".format(vid_path))
+        stdout.write("\nWrote {} to disk.".format(vid_path))
 
         new_vid_path = vid_path.replace("h264", "mp4")
 
@@ -253,7 +253,7 @@ class py_sPi(object):
             os.remove(vid_path)
             self.dropbox_upload(new_vid_path)
         except Exception as e:
-            stdout.write("MP4 Converison Error {}".format(e))
+            stdout.write("\nMP4 Converison Error {}".format(e))
             return None
 
     def make_picture_path(self):
@@ -277,7 +277,7 @@ class py_sPi(object):
                     "/" + path)
                 os.remove(path)
             except ApiError as e:
-                stdout.write(e)
+                stdout.write("\n" + e)
             else:
                 # send mms using url of succesfully uploaded file
                 self.send_mms(response.url)
