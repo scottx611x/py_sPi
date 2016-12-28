@@ -7,6 +7,8 @@ import os
 import cv2
 import dropbox
 import sys
+import ephem
+import threading
 from sys import stdout
 import time
 import json
@@ -17,7 +19,6 @@ from dropbox.exceptions import ApiError
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
-import utils
 
 global RETRY_TWILIO_SEND
 RETRY_TWILIO_SEND = 0
@@ -112,7 +113,7 @@ class py_sPi(object):
 
                 # Check if its the right time of day to run our type of Pi
                 # We'll sleep for an hour and check again
-                day_or_night = utils.day_or_night_pi()
+                day_or_night = day_or_night_pi()
                 if day_or_night != self.pi_type:
                     stdout.write("Not the right time to run our {}".format(
                         self.pi_type))
@@ -204,7 +205,7 @@ class py_sPi(object):
             # clear the stream in preparation for the next frame
             self.raw_capture.truncate(0)
 
-    @utils.run_in_thread
+    @run_in_thread
     def take_video(self, duration):
         """
             Takes a raw .h264 video and converts to .mp4
@@ -240,7 +241,7 @@ class py_sPi(object):
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
-    @utils.run_in_thread
+    @run_in_thread
     def dropbox_upload(self, path):
         """
         :param path: Full filesystem path of file to be uploaded
@@ -259,7 +260,7 @@ class py_sPi(object):
                 # send mms using url of succesfully uploaded file
                 self.send_mms(response.url)
 
-    @utils.run_in_thread
+    @run_in_thread
     def send_mms(self, dropbox_url):
         """
             Takes a relative path to a picture and video and attempts to
@@ -320,6 +321,29 @@ class py_sPi(object):
             recipients = twilio_send(recipients_temp)
 
         RETRY_TWILIO_SEND = 0
+
+
+def day_or_night_pi():
+    sunlight = ephem.Sun()
+    city = ephem.city('Boston')
+    sunlight.compute(city)
+    twilight = -12 * ephem.degree
+    if sunlight.alt > twilight:
+        return "DAY_PI"
+    else:
+        return "NIGHT_PI"
+
+
+def run_in_thread(fn):
+    """
+    :param fn: function to be run in its own thread
+    :return: thread object
+    """
+    def run(*k, **kw):
+        t = threading.Thread(target=fn, args=k, kwargs=kw)
+        t.start()
+        return t
+    return run
 
 cam = py_sPi(30, (1920, 1080), settings["PI_TYPE"])
 cam.detect_motion()
