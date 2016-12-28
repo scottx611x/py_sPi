@@ -2,19 +2,25 @@
 # Scott Ouellette | scottx611x@gmail.com
 
 # --------------------------------------
-
+import httplib2
 import os
 import cv2
 import dropbox
-import threading
 import sys
+from sys import stdout
 import time
 import json
 import uuid
 from datetime import datetime, timedelta
+from twilio.rest import TwilioRestClient
+from dropbox.exceptions import ApiError
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-from utils.day_or_night import day_or_night_pi
+from utils import day_or_night_pi, run_in_thread
+
+
+global RETRY_TWILIO_SEND
+RETRY_TWILIO_SEND = 0
 
 try:
     with open("config.json", 'r') as f:
@@ -28,15 +34,13 @@ class py_sPi(object):
     """
         Class that allows one to instantiate a stream that will detect
         motion using a raspberry pi and V2 Cam.
-
-        NOTE: This relies on some webserver running in the same dir and some
-        port-forwarding so that twilio can make GET's for the images on
-        whatever pi this runs on.
-
-        Flask works great for this.
     """
 
     camera = PiCamera()
+    account = settings["TWILIO_ACCOUNT"]
+    token = settings["TWILIO_TOKEN"]
+
+    client = TwilioRestClient(account, token)
     dbx = dropbox.Dropbox(settings["DROPBOX_ACCESS_TOKEN"])
 
     def __init__(self, framerate, resolution, pi_type):
@@ -44,12 +48,12 @@ class py_sPi(object):
 
         self.pi_type = pi_type
 
-        print("Camera initializing")
+        stdout.write("Camera initializing")
 
         self.camera.framerate = framerate
         self.camera.resolution = resolution
 
-        print("Starting raw capture")
+        stdout.write("Starting raw capture")
 
         self.raw_capture = PiRGBArray(self.camera, size=resolution)
 
@@ -81,10 +85,10 @@ class py_sPi(object):
         self.last_saved = datetime.now()
         self.motion_counter = 0
 
-        print("Camera initialized")
+        stdout.write("Camera initialized")
 
     def detect_motion(self):
-        print("Detecting Motion")
+        stdout.write("Detecting Motion")
 
         self.last_checked_time = self.start_time
 
@@ -93,12 +97,16 @@ class py_sPi(object):
                 self.raw_capture, format="bgr", use_video_port=True):
             # grab the raw NumPy array representing the image and initialize
             # the timestamp and MOTION/NO_MOTION text
+
+            # Flush stdout every loop
+            stdout.flush()
+
             frame = frames.array
             timestamp = datetime.now()
             text = "NO_MOTION"
 
             if self.last_checked_time <= timestamp - timedelta(minutes=45):
-                print("Timestamp: {}".format(timestamp))
+                stdout.write("Timestamp: {}".format(timestamp))
 
                 self.last_checked_time = timestamp
 
@@ -106,16 +114,16 @@ class py_sPi(object):
                 # We'll sleep for an hour and check again
                 day_or_night = day_or_night_pi()
                 if day_or_night != self.pi_type:
-                    print("Not the right time to run our {}".format(
-                            self.pi_type))
-                    print("day_or_night_check returned: {}".format(
-                            day_or_night))
+                    stdout.write("Not the right time to run our {}".format(
+                        self.pi_type))
+                    stdout.write("day_or_night_check returned: {}".format(
+                        day_or_night))
                     time.sleep(3600)
                 else:
-                    print("It's the right time to run our {}".format(
-                            self.pi_type))
-                    print("day_or_night_check returned: {}".format(
-                            day_or_night))
+                    stdout.write("It's the right time to run our {}".format(
+                        self.pi_type))
+                    stdout.write("day_or_night_check returned: {}".format(
+                        day_or_night))
 
             # convert frame to grayscale, and blur it
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -177,11 +185,12 @@ class py_sPi(object):
                         # write the image to disk
                         pic_path = self.make_picture_path()
                         cv2.imwrite(pic_path, frame)
+                        self.dropbox_upload(pic_path)
 
-                        print("Motion detected!!! Recording a {} second "
-                              "clip".format(self.video_duration))
-                        vid_path = self.take_video(self.video_duration)
-                        self.async_upload(pic_path, vid_path)
+                        stdout.write("Motion detected!!! Recording a {} "
+                                     "second "
+                                     "clip".format(self.video_duration))
+                        self.take_video(self.video_duration)
 
                         # update the last uploaded timestamp and reset the
                         # motion counter
@@ -195,6 +204,7 @@ class py_sPi(object):
             # clear the stream in preparation for the next frame
             self.raw_capture.truncate(0)
 
+    @run_in_thread
     def take_video(self, duration):
         """
             Takes a raw .h264 video and converts to .mp4
@@ -205,22 +215,22 @@ class py_sPi(object):
             returns: the relative path to said video or None if something fails
             during mp4 conversion
         """
-        print("Taking Video")
+        stdout.write("Taking Video")
 
         vid_path = 'vids/{}.h264'.format(uuid.uuid4()).replace("-", "")
         self.camera.start_recording(vid_path)
         time.sleep(duration)
         self.camera.stop_recording()
-        print("Wrote {} to disk.".format(vid_path))
+        stdout.write("Wrote {} to disk.".format(vid_path))
 
         new_vid_path = vid_path.replace("h264", "mp4")
 
         try:
             os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
             os.remove(vid_path)
-            return new_vid_path
+            self.dropbox_upload(new_vid_path)
         except Exception as e:
-            print("MP4 Converison Error {}".format(e))
+            stdout.write("MP4 Converison Error {}".format(e))
             return None
 
     def make_picture_path(self):
@@ -230,25 +240,86 @@ class py_sPi(object):
         """
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
-    def dropbox_upload(self, *file_paths):
-        for path in file_paths:
-            with open(path, 'rb') as f:
-                data = f.read()
+    @run_in_thread
+    def dropbox_upload(self, path):
+        """
+        :param path: Full filesystem path of file to be uploaded
+        :return: Publicly shared dropbox link to uploaded file
+        """
+        with open(path, 'rb') as f:
+            data = f.read()
             try:
-                response = self.dbx.files_upload(data, "/" + path)
-                # remove local copy
+                self.dbx.files_upload(data, "/" + path)
+                response = self.dbx.sharing_create_shared_link_with_settings(
+                    "/" + path)
                 os.remove(path)
-                print(response)
-            except Exception as e:
-                print(e)
+            except ApiError as e:
+                stdout.write(e)
+            else:
+                # send mms using url of succesfully uploaded file
+                self.send_mms(response.url)
 
-    def async_upload(self, pic_path, vid_path):
-        # do some stuff
-        upload_thread = threading.Thread(target=self.dropbox_upload,
-                                         args=(pic_path, vid_path))
-        upload_thread.start()
-        # continue doing stuff
+    @run_in_thread
+    def send_mms(self, dropbox_url):
+        """
+            Takes a relative path to a picture and video and attempts to
+            send MMS messages that include a download link to said video
+            to a preset list of recipients
+            param: dropbox_url: url to file in dropbox account
+        """
+        global RETRY_TWILIO_SEND
+        stdout.write("\nSending MMS message")
 
+        body = "Motion detected!"
+        numbers = ["+12075136000"]
+        recipient_states = {item: None for item in numbers}
+
+        def twilio_send(recipients):
+            """
+                Recursive method to ensure that all message are
+                properly sent to each recipient defined
+                NOTE: I had to introduce this feature because twilio
+                would raise httplib2.ServerNotFoundError-s periodically
+                param: recipients: dict in the form of  {<phone_number>: <message_send_state>, ...}
+                returns: the same recipients dict with updated <message_send_states>
+            """
+            global RETRY_TWILIO_SEND
+
+            if RETRY_TWILIO_SEND > 5:
+                stdout.write(
+                    "\nCan't reach twilio :( Waiting for a minute then trying again")
+
+                time.sleep(60)
+                RETRY_TWILIO_SEND = 0
+
+            for number in recipients:
+                try:
+                    self.client.messages.create(
+                        to=number,
+                        from_="+15106626969",
+                        body=body,
+                        media_url=[dropbox_url]
+                    )
+                    recipients[number] = "SUCCESS"
+
+                except (httplib2.ServerNotFoundError, Exception):
+                    recipients[number] = "FAILURE"
+
+            return recipients
+
+        recipients = twilio_send(recipient_states)
+
+        while recipients:
+            recipients_temp = {}
+
+            for recipient in recipients:
+                if recipients[recipient] == "FAILURE":
+                    recipients_temp[
+                        recipient] = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+            recipients = twilio_send(recipients_temp)
+
+        RETRY_TWILIO_SEND = 0
 
 cam = py_sPi(30, (1920, 1080), settings["PI_TYPE"])
 cam.detect_motion()
