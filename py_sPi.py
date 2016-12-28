@@ -31,6 +31,28 @@ except IOError as e:
     sys.exit()
 
 
+def day_or_night_pi():
+    sunlight = ephem.Sun()
+    city = ephem.city('Boston')
+    sunlight.compute(city)
+    twilight = -12 * ephem.degree
+    if sunlight.alt > twilight:
+        return "DAY_PI"
+    else:
+        return "NIGHT_PI"
+
+
+def run_in_thread(fn):
+    """
+    :param fn: function to be run in its own thread
+    :return: thread object
+    """
+    def run(*k, **kw):
+        t = threading.Thread(target=fn, args=k, kwargs=kw)
+        t.start()
+        return t
+    return run
+
 class py_sPi(object):
     """
         Class that allows one to instantiate a stream that will detect
@@ -321,29 +343,6 @@ class py_sPi(object):
             recipients = twilio_send(recipients_temp)
 
         RETRY_TWILIO_SEND = 0
-
-
-def day_or_night_pi():
-    sunlight = ephem.Sun()
-    city = ephem.city('Boston')
-    sunlight.compute(city)
-    twilight = -12 * ephem.degree
-    if sunlight.alt > twilight:
-        return "DAY_PI"
-    else:
-        return "NIGHT_PI"
-
-
-def run_in_thread(fn):
-    """
-    :param fn: function to be run in its own thread
-    :return: thread object
-    """
-    def run(*k, **kw):
-        t = threading.Thread(target=fn, args=k, kwargs=kw)
-        t.start()
-        return t
-    return run
 
 cam = py_sPi(30, (1920, 1080), settings["PI_TYPE"])
 cam.detect_motion()
