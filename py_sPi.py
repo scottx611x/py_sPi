@@ -251,7 +251,7 @@ class py_sPi(object):
         try:
             os.system("MP4Box -add {} {}".format(vid_path, new_vid_path))
             os.remove(vid_path)
-            self.dropbox_upload(new_vid_path)
+            self.dropbox_upload(new_vid_path, send_mms=False)
         except Exception as e:
             stdout.write("\nMP4 Converison Error {}".format(e))
             return None
@@ -264,7 +264,7 @@ class py_sPi(object):
         return 'pics/{}.jpg'.format(uuid.uuid4()).replace("-", "")
 
     @run_in_thread
-    def dropbox_upload(self, path):
+    def dropbox_upload(self, path, send_mms=True):
         """
         :param path: Full filesystem path of file to be uploaded
         :return: Publicly shared dropbox link to uploaded file
@@ -280,7 +280,8 @@ class py_sPi(object):
                 stdout.write("\n" + e)
             else:
                 # send mms using url of succesfully uploaded file
-                self.send_mms(response.url)
+                if send_mms:
+                    self.send_mms(response.url)
 
     @run_in_thread
     def send_mms(self, dropbox_url):
@@ -296,6 +297,10 @@ class py_sPi(object):
         body = "Motion detected!"
         numbers = ["+12075136000"]
         recipient_states = {item: None for item in numbers}
+
+        # alter url to provide correct content-type
+        head, partition, tail = dropbox_url.rpartition("=")
+        dropbox_url = head + partition + "1"
 
         def twilio_send(recipients):
             """
